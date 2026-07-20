@@ -1,0 +1,51 @@
+# --- documentation kept local, never pushed to the remote ---
+# per-script sidecar docs
+src/*.md
+tests/*.md
+# top-level project docs (README.md stays tracked; everything else is local-only)
+HANDOFF.md
+CLAUDE.md
+CONTRACTS.md
+0?_*.md
+
+# --- ALL of data/ is ignored EXCEPT the one small tracked doc ---
+# (this auto-ignores any future dataset cache, index, or adapter under data/)
+data/*
+!data/annotations/
+data/annotations/*
+!data/annotations/LABEL_MAPPING.md
+
+# --- run outputs (regenerable, never commit) ---
+reports/runs/
+
+# --- Python / build artifacts ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# --- model weights (large; regenerable) ---
+*.pt
+*.bin
+*.safetensors
+*.onnx
+
+# --- secrets / local env ---
+.env
+.env.*
+*.local
+
+# --- logs ---
+*.log
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db

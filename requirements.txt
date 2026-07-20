@@ -1,0 +1,35 @@
+# EVI-TRIAL dependencies. Grouped by where they're used so you know why each is here.
+# Install:  pip install -r requirements.txt
+# Tip: torch is the heavy one -- if you have a specific CUDA build, install that first.
+
+# --- core plumbing (config, schemas, everything) ---
+pyyaml>=6.0            # config.py reads default.yaml
+numpy>=1.24            # arrays / seeding (used across retrieval + matcher)
+
+# --- ingestion (ingest.py, checkIngest.py) ---
+ir_datasets>=0.5.5     # TREC CT 2021 trials + topics + qrels
+datasets>=2.16         # HuggingFace loader for the TrialGPT criterion annotations
+pandas>=2.0            # convenient handling of annotation rows (optional but handy)
+
+# --- retrieval (retrieval.py, indexQdrant.py) ---
+bm25s>=0.1.10          # sparse BM25 first stage
+qdrant-client>=1.7     # dense vector store
+transformers>=4.38     # MedCPT query/article/cross encoders
+torch>=2.1             # backs transformers + peft (install the right CUDA build for your GPU)
+
+# --- matcher + fine-tuning (match.py, trainLora.py) ---
+peft>=0.9              # LoRA adapters
+accelerate>=0.27       # training loop helper for transformers
+scikit-learn>=1.3      # macro-F1, confusion matrix, calibration metrics
+
+# --- evaluation (eval.py) ---
+ir_measures>=0.3.3     # nDCG / Recall / MAP against qrels (do NOT hand-roll these)
+
+# --- observability (trace.py) -- optional; pipeline no-ops if absent ---
+langfuse>=2.0          # tracing spans (safe to skip; trace.py degrades gracefully)
+
+# --- demo (demo.py) -- build last ---
+streamlit>=1.30        # minimal single-patient UI
+
+# --- dev ---
+pytest>=8.0            # runs tests/testContracts.py (they also run under plain python)

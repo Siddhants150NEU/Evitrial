@@ -1,0 +1,67 @@
+# default.yaml -- the ONE config. Every knob in the system lives here.
+# No magic numbers in code: if a number matters, it belongs in this file.
+# Loaded by config.loadConfig(); seeds applied by config.setSeeds(seed).
+
+seed: 13
+
+paths:
+  dataDir: data
+  reportsDir: reports/runs
+  loraAdapter: data/loraAdapter        # where trainLora.py saves the adapter
+
+# ---- retrieval (Stage B) -- read by retrieval.py and indexQdrant.py ----
+retrieval:
+  k: 20                                 # final candidates returned to the pipeline
+  topN: 100                             # how many BM25 hits feed the dense/rerank stage
+  alpha: 0.5                            # hybrid fusion weight (or switch to RRF in code)
+  useRerank: true                       # cross-encoder rerank on/off (this is an ablation)
+  queryEncoder: ncbi/MedCPT-Query-Encoder     # encodes PATIENT notes
+  articleEncoder: ncbi/MedCPT-Article-Encoder # encodes TRIALS (asymmetric!)
+  crossEncoder: ncbi/MedCPT-Cross-Encoder     # reranker
+  vectorDim: 768
+  batchSize: 64
+  qdrant:
+    location: data/qdrant               # local persisted store (or set host/port)
+    collection: trials2021
+
+# ---- matcher (Stage D) -- read by match.py and trainLora.py ----
+matcher:
+  rung: zeroShot                        # rules | zeroShot | lora  (which matcher is active)
+  nliModel: ncbi/MedCPT-Cross-Encoder   # placeholder; swap for your chosen biomedical NLI
+  lora:
+    baseModel: microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract
+    rank: 8
+    alpha: 16
+    dropout: 0.05
+    epochs: 3
+    learningRate: 0.0002
+    maxLength: 512
+
+# ---- ranking (Stage F) -- read by rank.aggregate() ----
+# Transparent linear score. Tune here, never hardcode in rank.py.
+rank:
+  retrievalPrior: 1.0                   # weight on the retrieval score
+  inclusionMet: 1.0                     # reward each inclusion criterion the patient MEETS
+  inclusionFailed: 1.0                  # penalise each inclusion criterion the patient FAILS
+  exclusionHit: 5.0                     # heavy penalty when an exclusion condition is TRUE
+
+# ---- evaluation splits -- read by trainLora.py and eval.py ----
+# Seeded split of the criterion-annotation pairs. TEST is frozen: no tuning on it, ever.
+splits:
+  scheme: byPatient                     # split by patientId so a patient can't span train+test
+  train: 0.7
+  val: 0.15
+  test: 0.15
+  useTrainingFlag: false                # true = honour the dataset's own `training` column instead
+
+# ---- data -- dataset ids + expected counts (mirrored in checkIngest.EXPECTED) ----
+data:
+  trecRetrieval: clinicaltrials/2021/trec-ct-2021
+  annotationsRepo: ncbi/TrialGPT-Criterion-Annotations
+  expected:
+    trials: 375580
+    topics: 75
+    qrels: 35832
+    annotationRows: 1015
+    annotationPatients: 53
+    annotationTrials: 103
