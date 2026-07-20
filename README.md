@@ -1,52 +1,57 @@
-# 🧪 EVI-TRIAL
+# EVI-TRIAL
 
-**Evidence-verified clinical-trial matching.** Given a patient note, rank the clinical
-trials they might qualify for — and for every criterion, say **MET / NOT_MET / UNKNOWN**
-*and point at the exact text that proves it*. If it can't point at real text, it shuts up
-and says **UNKNOWN**.
+Evidence-verified clinical trial matching. Given a patient note, rank the trials the
+patient might qualify for, and label every eligibility criterion `MET`, `NOT_MET`, or
+`UNKNOWN` with a pointer to the exact sentence in the note that justifies the label.
+If it can't point at real text, it abstains and says `UNKNOWN`.
 
-> If you read one sentence, read this:
-> **The point of this project is not retrieval. It's that every answer is backed by a
-> real span or it abstains — checked in code, not vibes.**
+The failure mode this targets: an LLM will confidently report that a patient meets
+criterion X and cite a sentence that is not in the note. In a clinical setting, a
+confident answer backed by a hallucinated reason is worse than "I don't know",
+because it looks trustworthy.
 
----
+Built on TrialGPT (NCBI/NIH, Nature Communications 2024) for the retrieve/match/rank
+skeleton and the criterion annotations, MedCPT for biomedical dense retrieval, and
+TREC Clinical Trials 2021 for the corpus and relevance judgments. The novelty is not
+the skeleton. It is the verification and abstention layer wrapped around it.
 
-## 🎯 The one idea (the "spine")
+## The one idea
 
-Most RAG demos will happily give you a confident answer with a made-up citation. This one
-*can't*. There's a function — `verify.verify()` — that every decision must pass through.
-If the cited span isn't literally in the patient note, the decision is **forced to
-UNKNOWN**. A correct label with a fake span counts as a **failure**, not a win.
+Most RAG demos will hand you a confident answer with an invented citation. This
+pipeline is built so it can't. Every criterion decision passes through one function,
+`verify.verify()`. It checks that the cited span is literally present in the patient
+note. If it isn't, the decision is forced to `UNKNOWN`. The eval scores a correct
+label with a fabricated span as a failure, same as a wrong label.
 
-That's the whole differentiator. Everything else (retrieval, matching, LoRA) is
-supporting cast.
+The guarantee rests on three cooperating facts. `Decision.verified` starts `False` in
+`schemas.py`. `verify.verify()` is the only code that sets it `True`.
+`rank.aggregate()` asserts every decision is verified before anything gets scored.
+Skip the verifier and `rank` raises. `tests/testContracts.py` proves both the forced
+abstention and the assert. The whole enforcement mechanism is one tiny file and one
+assert. Small surface, easy to trust.
 
-```
-A correct answer for invented reasons  ==  a wrong answer.
-We refuse to ship either one.
-```
+Everything else in the repo (retrieval, matching, LoRA) supports that check. The gate
+is the project.
 
----
-
-## ⚡ Quick start (do this first)
+## Quick start
 
 ```bash
-# 1. install
+# install
 pip install -r requirements.txt
 
-# 2. sanity-check the data BEFORE building anything (this is a hard gate)
-python -m src.checkIngest          # add --fast to skip the slow 375k trial count
+# sanity-check the data BEFORE building anything
+python -m src.checkIngest        # --fast skips the slow 375k trial count
 
-# 3. run the invariants (no data needed; pure python)
-python tests/testContracts.py           # or: pytest tests/
+# run the invariants (pure python, no data needed)
+python tests/testContracts.py    # or: pytest tests/
 ```
 
-> ℹ️ The `src` package lives at the repo root, so run commands **from the repo root**
-> and it imports directly — no `PYTHONPATH` needed. A `Makefile` wraps the common ones
-> (`make install`, `make check`, `make test`, `make eval`, `make demo`), and `pip install -e .`
-> works via `pyproject.toml` if you want it installed.
+Run everything from the repo root; the `src` package lives there and imports directly,
+no PYTHONPATH needed. A Makefile wraps the common commands (`make install`,
+`make check`, `make test`, `make eval`, `make demo`), and `pip install -e .` works via
+`pyproject.toml` if you want it installed.
 
-### ✅ What a healthy `checkIngest` looks like
+`checkIngest` is a hard gate. Healthy output looks like this:
 
 ```
 Trials (TREC CT 2021 corpus)
@@ -65,127 +70,167 @@ Annotations (TrialGPT criterion labels -> matching eval)
 ALL CHECKS PASSED -- ingestion looks healthy. Safe to build downstream.
 ```
 
-If anything is red → **stop and fix ingestion.** Every number downstream is meaningless
-if the data loaded wrong. (See `05_HARD_STOPS_AND_DEFENSIBILITY.md`.)
+If anything fails, stop and fix ingestion before building anything else. Every
+downstream number is meaningless if the data loaded wrong.
 
----
+## Data
 
-## 📊 What data are we even using?
+Two datasets, two separate jobs. They are kept separate on purpose.
 
-Two datasets, two totally separate jobs. **Don't mix them** (this is on purpose).
-
-| Job | Dataset | Size | Used for |
+| Job | Dataset | Size | Scores |
 |---|---|---|---|
-| **Retrieval** | TREC CT 2021 (`clinicaltrials/2021/trec-ct-2021`) | 375,580 trials · 75 patient topics · 35,832 qrels | scoring how well we *find* trials |
-| **Matching** | `ncbi/TrialGPT-Criterion-Annotations` | 1,015 pairs · 53 patients · 103 trials | scoring MET/NOT_MET/UNKNOWN + evidence |
+| Retrieval | TREC CT 2021 (`clinicaltrials/2021/trec-ct-2021`) | 375,580 trials, 75 patient topics, 35,832 qrels | how well we find candidate trials |
+| Matching | `ncbi/TrialGPT-Criterion-Annotations` | 1,015 pairs, 53 patients, 103 trials | MET/NOT_MET/UNKNOWN + evidence |
 
-The matching set ships **expert labels AND expert evidence sentences**, so we get gold
-spans for the faithfulness eval basically for free. 🎁 Full details:
-`02_DATA_SPEC.md`.
+The TrialGPT set ships expert labels and expert evidence sentences, so the
+faithfulness eval gets its gold spans without any extra annotation work.
 
----
+## What goes where
 
-## 🗺️ The map (what every file is, in one line)
+Flat package, one file per pipeline stage. No `core/`, no `utils/`, no `models/`
+maze. If you're not sure where code goes, the filename should answer it.
 
-Flat package, one file per pipeline stage. Colour key: 🟩 = built & working ·
-🟨 = harness built, you fill logic · 🟥 = stub (your logic).
+```
+eviTrial/
+  requirements.txt
+  configs/default.yaml                  the one config, every knob lives here
+  data/annotations/LABEL_MAPPING.md     why the six TrialGPT labels collapse to three
+  reports/runs/                         one folder per eval run, written by eval.py
+  notebooks/                            scratch and exploration
+  tests/testContracts.py                the guardrails, 7 invariants
+  src/                                  the package, one file per stage
+```
+
+Status markers: `done` = built and working, `harness` = harness works but the logic
+is missing, `stub` = not built.
 
 ```
 src/
-  schemas.py       🟩 the vocabulary: dataclasses + the ONE normalize()
-  config.py        🟩 load default.yaml + pin all the RNG seeds
-  trace.py         🟩 optional Langfuse spans (no-ops if not configured)
-  pipeline.py      🟩 runPatient(): the whole flow, top to bottom  ← read this first
-  ingest.py        🟩 raw datasets -> clean schemas (WORKING)
-  checkIngest.py   🟩 verify ingestion counts (WORKING, has expected numbers baked in)
-  verify.py        🟩 THE SPINE: span check + forced abstention
-  rank.py          🟩 transparent scoring + the "must be verified" gate
-  retrieval.py     🟥 BM25 + MedCPT dense + rerank        (your logic)
-  indexQdrant.py   🟥 one-time: embed trials into Qdrant   (your logic)
-  parse.py         🟥 eligibility text -> atomic criteria  (your logic)
-  match.py         🟥 MET/NOT_MET/UNKNOWN, 3 rungs         (your logic)
-  trainLora.py     🟥 one-time: LoRA fine-tune            (your logic)
-  eval.py          🟨 run harness WORKING; 6 metric fns are stubs (your logic)
-  demo.py          🟥 minimal Streamlit UI (build LAST)
-
-tests/testContracts.py   🟩 the guardrails (7 tests, all passing)
-configs/default.yaml     🟩 every knob in one place
-data/annotations/LABEL_MAPPING.md   🟩 the 6->3 label reasoning
+  schemas.py       done     the dataclasses everything passes around (Trial, Criterion,
+                            Candidate, Decision, TrialScore, PatientCriterionPair) plus
+                            the single normalize(). Decision.verified defaults to False,
+                            which is the linchpin of the gate
+  config.py        done     loadConfig() reads default.yaml, setSeeds() pins the Python,
+                            NumPy, and Torch RNGs. Boring on purpose
+  trace.py         done     span() context manager, emits Langfuse spans if configured,
+                            no-ops if not. Never crashes the pipeline
+  pipeline.py      done     runPatient() wires every stage in order. Read this first
+  ingest.py        done     loaders for trials, topics, qrels, and annotations, plus the
+                            6->3 label mapping and gold-span extraction
+  checkIngest.py   done     ingestion verifier, expected counts baked in, green/red
+                            report, nonzero exit on failure
+  verify.py        done     isSupported() substring check + verify(), the only setter of
+                            verified=True. Nothing bypasses it
+  rank.py          done     aggregate() turns decisions into one transparent linear
+                            score and asserts every decision is verified
+  retrieval.py     stub     the BM25 + MedCPT dense + rerank cascade, plus fetchTrials.
+                            Never reads qrels
+  indexQdrant.py   stub     one-time: embed the corpus into Qdrant
+  parse.py         stub     eligibility text -> atomic Criterions, with negation and
+                            temporal cues
+  match.py         stub     match() dispatches ruleMatch / zeroShotMatch / loraMatch,
+                            each returning a raw Decision (verified=False)
+  trainLora.py     stub     one-time LoRA fine-tune, train split only
+  eval.py          harness  runId, git SHA, seed, and JSON logging work; the six metric
+                            functions do not exist yet
+  demo.py          stub     minimal Streamlit UI, build last
 ```
 
----
+## What happens on a query
 
-## 🔁 The pipeline at a glance
+`pipeline.runPatient(note, config)` is the whole runtime path. Read it and you
+understand the system.
 
 ```
-   patient note
-        │
-        ▼
-   [ retrieve ]  ── BM25 + MedCPT dense → fuse → rerank ──▶ top-k candidate trials
-        │
-        ▼   (for each trial)
-   [ parse ]     ── eligibility blob → atomic criteria
-        │
-        ▼   (for each criterion)
-   [ match ]     ── MET / NOT_MET / UNKNOWN  + a PROPOSED span   (verified=False)
-        │
-        ▼
-   [ verify ]    ── span really in the note?  no → FORCE UNKNOWN.  sets verified=True   ★ the spine
-        │
-        ▼
-   [ aggregate ] ── decisions → one transparent score   (asserts every decision verified)
-        │
-        ▼
-   ranked trials + per-criterion evidence + "missing info" list
+note
+  retrieval.retrieve                        ->  [Candidate ...]
+  retrieval.fetchTrials(ids)                ->  {nctId: Trial}
+  for each candidate trial:
+    parse.parseCriteria(trial)              ->  [Criterion ...]
+    for each criterion:
+      match.match(note, crit)               ->  Decision(verified=False)
+      verify.verify(decision, note, crit.text)  ->  Decision(verified=True), or forced UNKNOWN
+  rank.aggregate(nctId, decisions, score)   ->  TrialScore  (asserts every decision verified)
+  sort by score                             ->  [TrialScore ...] + per-criterion evidence
+                                                + missing-info list
 ```
 
----
+Two offline jobs sit outside this path and run once. `indexQdrant.buildIndex` embeds
+the whole corpus into Qdrant, a retrieval prerequisite. `trainLora.train` fits the
+LoRA adapter, a matcher prerequisite if the LoRA rung is used.
 
-## 🧾 Command cheat-sheet
+Ingestion is the front door:
+
+```
+TREC CT 2021          ->  ingest.loadTrials / loadTopics / loadQrels  ->  Trial / topics / qrels
+TrialGPT annotations  ->  ingest.loadAnnotations -> ingest.toEvalPairs  ->  [PatientCriterionPair]
+                          checkIngest.py verifies the counts on both
+```
+
+## Commands
 
 | Do this | Command |
 |---|---|
 | Install | `pip install -r requirements.txt` |
-| Check the data | `python -m src.checkIngest` (`--fast` to skip full count) |
+| Check the data | `python -m src.checkIngest` (`--fast` skips the full count) |
 | Run guardrails | `python tests/testContracts.py` |
 | Build the vector index (once, slow) | `python -m src.indexQdrant` |
 | Fine-tune LoRA (once) | `python -m src.trainLora` |
-| Run the full eval → logged run | `python -m src.eval` |
+| Run the full eval as a logged run | `python -m src.eval` |
 | Demo | `streamlit run src/demo.py` |
 
----
+## Stack
 
-## 🚧 The 5 non-negotiables (the long version is in `CLAUDE.md`)
+Committed choices, not placeholders. Swap only with a reason.
 
-1. **camelCase everything** (functions, vars, filenames). Classes stay PascalCase.
-2. **One `normalize()`**, one `default.yaml`. No forks, no magic numbers.
-3. **`verify()` is non-bypassable.** Only it sets `verified=True`; `rank` asserts it.
-4. **qrels are gold.** Retrieval never reads them. Ever. (There's a test for this.)
-5. **No `runId`, no number.** Every result comes from a logged run or it doesn't exist.
+| Stage | Packages | Why |
+|---|---|---|
+| Ingestion | `ir_datasets`, `datasets` | canonical loaders for TREC CT and the HF annotations |
+| Sparse retrieval | `bm25s` | fast, light BM25, less baggage than the alternatives |
+| Dense retrieval | `transformers`, `torch`, `qdrant-client` | MedCPT encoders plus a real vector store |
+| Encoders | MedCPT (`ncbi/MedCPT-*`) | domain-matched biomedical encoders |
+| Parsing | stdlib + `re` | rules first, reach for a sentence splitter only if needed |
+| Matching | `transformers`, `torch` | biomedical NLI classifier |
+| Fine-tuning | `peft`, `accelerate` | LoRA adapters, cheap to train |
+| Verification | stdlib only | the guarantee has to be simple to be trustworthy |
+| Ranking | stdlib only | transparent linear formula |
+| Metrics | `ir_measures`, `scikit-learn` | never hand-roll nDCG or F1 |
+| Tracing | `langfuse` (optional) | per-stage spans, degrades to a no-op |
+| Demo | `streamlit` | fastest path to a clickable UI |
 
----
+One trap worth flagging: MedCPT is asymmetric. Patient notes go through the query
+encoder, trials through the article encoder. Using one encoder for both is a classic
+silent bug.
 
-## 📚 Where to go next
+## How it's measured
 
-| I want to… | Open |
-|---|---|
-| Understand *why this exists* | `00_PROJECT_BRIEF.md` |
-| See the architecture + stack | `01_ARCHITECTURE.md` |
-| Know the exact data shapes + counts | `02_DATA_SPEC.md` |
-| Know what to build, in what order | `03_IMPLEMENTATION_PLAN.md` |
-| Know how it's measured | `04_EVALUATION_PROTOCOL.md` |
-| Know the honesty rules + failure stops | `05_HARD_STOPS_AND_DEFENSIBILITY.md` |
-| Look up a file/function's inputs & outputs | `CONTRACTS.md`  ← your day-to-day reference |
-| Give the rules to Claude Code | `CLAUDE.md` |
+Every number comes out of `python -m src.eval` and lands in `reports/runs/<runId>/`:
+`config.json` (the exact config), `meta.json` (runId, git short SHA, seed, UTC
+timestamp), and `metrics.json` (every metric). No run folder, no number.
 
----
+Retrieval is scored against the TREC qrels with `ir_measures`: nDCG@10 primary,
+Recall@10/20/50, MAP, one row per variant (BM25, dense, hybrid, hybrid plus rerank).
+Matching is scored against the expert labels: macro-F1 primary, per-class
+precision/recall/F1, confusion matrix, 95% bootstrap confidence intervals. Rungs are
+compared on a test split that is frozen and split by patientId, so no patient appears
+on both sides.
 
-## 📈 Status right now
+The headline is faithfulness. Supported-rate is the fraction of non-abstained
+decisions whose cited span passes `verify.isSupported`. It gets reported with the
+verifier ON and OFF, and the delta between the two is the project's contribution. The
+forced-abstention count is reported next to it, since that is the mechanism behind
+the delta.
 
-- 🟩 **Working & tested here:** schemas, verify, rank, config, trace, pipeline wiring,
-  ingest, checkIngest, the 7 contract tests. All compile; all invariants pass.
-- 🟨 **Harness ready:** `eval.py` (run logging works; metrics are yours to fill).
-- 🟥 **Your logic:** retrieval, indexQdrant, parse, match, trainLora, eval metrics, demo.
-- ⚠️ **Not run here:** `ingest`/`checkIngest` need network + dataset downloads, so they
-  were compiled and written against the *verified* dataset APIs but executed in *your*
-  environment. First run may take a while (375k-trial corpus download + count).
+Abstention gets its own numbers: coverage, selective accuracy on the answered subset,
+UNKNOWN recall on the pairs where the experts themselves said there wasn't enough
+information, and a risk-coverage curve. Calibration (ECE, Brier) and latency (p50/p95
+plus the hardware it ran on) round it out, reported modestly given the sample size.
+
+## Rules
+
+1. camelCase for functions, variables, and filenames. PascalCase for classes.
+2. One `normalize()`. One `default.yaml`. No forks, no magic numbers.
+3. `verify()` is the only code that sets `verified=True`, and `rank` asserts it on
+   every decision. Not bypassable.
+4. Retrieval never reads the qrels. There is a test that enforces this.
+5. No `runId`, no number. A metric that is not tied to a logged run does not exist.
