@@ -225,12 +225,3 @@ Abstention gets its own numbers: coverage, selective accuracy on the answered su
 UNKNOWN recall on the pairs where the experts themselves said there wasn't enough
 information, and a risk-coverage curve. Calibration (ECE, Brier) and latency (p50/p95
 plus the hardware it ran on) round it out, reported modestly given the sample size.
-
-## Rules
-
-1. camelCase for functions, variables, and filenames. PascalCase for classes.
-2. One `normalize()`. One `default.yaml`. No forks, no magic numbers.
-3. `verify()` is the only code that sets `verified=True`, and `rank` asserts it on
-   every decision. Not bypassable.
-4. Retrieval never reads the qrels. There is a test that enforces this.
-5. No `runId`, no number. A metric that is not tied to a logged run does not exist.
