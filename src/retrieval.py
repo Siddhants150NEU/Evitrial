@@ -97,7 +97,7 @@ def denseSearch(note: str, config: dict, topN: int) -> list[Candidate]:
         collection_name=collection_name,
         query_vector=query_vector,
         limit=topN 
-    )
+    ).points
 
     for result in search_results:
         logger.info(f"Score: {result.score:.4f} | Text: {result.payload['nctId']}")

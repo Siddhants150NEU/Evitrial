@@ -4,6 +4,9 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 from .schemas import Criterion, Decision
+from transformers import AutoTokenizer, AutoModelForTokenClassification, AutoModelForSequenceClassification
+from transformers import pipeline
+import torch
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -112,7 +115,64 @@ def ruleMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     # raise NotImplementedError("implement the lexical rule baseline")
 
 def zeroShotMatch(note: str, criterion: Criterion, config: dict) -> Decision:
-    raise NotImplementedError("implement the zero-shot NLI baseline")
+    model_name = "pritamdeka/PubMedBERT-MNLI-MedNLI" #config["matcher"]["nliModel"]
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name)
+    # ner_pipeline = pipeline("token-classification", model=model, tokenizer=tokenizer, aggregation_strategy="simple")
+    sentences = sent_tokenize(note) if note and note.strip() else []
+    
+    if not sentences:
+        return Decision(
+            label="UNKNOWN",
+            confidence=0.0,
+            trialSpan=criterion.text,
+            patientSpan=None,
+            criterionId=criterion.criterionId,
+            criterionType=criterion.criterionType,
+            verified=False,
+        )
+    
+    id2label = getattr(model.config, "id2label", {})
+    
+    bestSentence = None
+    bestLabel = "UNKNOWN"
+    bestConfidence = 0.0
+    
+    for sentence in sentences:
+        pairs = [[sentence, criterion.text]]
+        with torch.no_grad():
+            encoded = tokenizer(pairs, truncation=True, padding=True, return_tensors="pt", max_length=512)
+            # logits = model(**encoded).logits.squeeze(dim=1)
+            logits = model(**encoded).logits
+            probs = torch.softmax(logits, dim=-1)[0]
+            
+            max_prob, max_idx = torch.max(probs, dim=-1)
+            predictedIdx = max_idx.item()
+            confidenceVal = max_prob.item()
+            rawLabel = id2label.get(predictedIdx, "").upper()
+            
+            if "ENTAIL" in rawLabel:
+                currentLabel = "MET"
+            elif "CONTRADICT" in rawLabel:
+                currentLabel = "NOT_MET"
+            else:
+                currentLabel = "UNKNOWN"
+            
+            if currentLabel != "UNKNOWN" and confidenceVal > bestConfidence:
+                bestConfidence = confidenceVal
+                bestLabel = currentLabel
+                bestSentence = sentence.strip()
+    
+    return Decision(
+        label=bestLabel,
+        confidence=round(bestConfidence, 4),
+        trialSpan=criterion.text,
+        patientSpan=bestSentence,
+        criterionId=criterion.criterionId,
+        criterionType=criterion.criterionType,
+        verified=False,
+    )
+    
 
 def loraMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     raise NotImplementedError("implement the LoRA-fine-tuned matcher")

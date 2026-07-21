@@ -5,6 +5,17 @@ import json
 import os
 import subprocess
 import traceback
+import bm25s, ir_measures
+import logging
+from ir_measures import MAP, R, calc_aggregate, nDCG
+from . import ingest
+import bm25s, torch
+from transformers import AutoTokenizer, AutoModel
+from qdrant_client import QdrantClient
+
+
+
+logger = logging.getLogger(__name__)
 
 from .config import loadConfig, setSeeds
 
@@ -64,7 +75,46 @@ def runEval(config: dict) -> str:
     return runId
 
 def retrievalMetrics(config: dict) -> dict:
-    raise NotImplementedError
+
+    rc = config["retrieval"]
+    trials = list(ingest.loadTrials())
+    nctIds = [t.nctId for t in trials]
+
+    qrels: dict = {}                                  
+    for qid, docid, rel in ingest.loadQrels():
+        qrels.setdefault(qid, {})[docid] = int(rel)
+    topics = list(ingest.loadTopics())                
+
+    bm = bm25s.BM25()                                  
+    bm.index(bm25s.tokenize([t.searchText() for t in trials], stopwords="en"))
+    tok = AutoTokenizer.from_pretrained(rc["queryEncoder"])   
+    model = AutoModel.from_pretrained(rc["queryEncoder"])
+    client = QdrantClient(path=rc["qdrant"]["location"])
+
+    def bm25Run():
+        run = {}
+        for qid, note in topics:
+            idx, sc = bm.retrieve(bm25s.tokenize(note, stopwords="en"), k=rc["topN"])
+            run[qid] = {nctIds[i]: float(s) for i, s in zip(idx[0], sc[0])}
+        return run
+
+    def denseRun():
+        run = {}
+        for qid, note in topics:
+            enc = tok(note, truncation=True, max_length=512, return_tensors="pt")
+            with torch.no_grad():
+                vec = model(**enc)[0][:, 0][0].numpy().tolist()
+            hits = client.query_points(collection_name=rc["qdrant"]["collection"],
+                                       query=vec, limit=rc["topN"]).points
+            run[qid] = {h.payload["nctId"]: float(h.score) for h in hits}
+        return run
+
+    measures = [nDCG@10, R@10, R@20, R@50, MAP]
+    results = {}
+    for name, run in [("bm25", bm25Run()), ("dense", denseRun())]:
+        agg = calc_aggregate(measures, qrels, run)
+        results[name] = {str(m): round(float(v), 4) for m, v in agg.items()}
+    return results
 
 def criterionMetrics(config: dict) -> dict:
     raise NotImplementedError
