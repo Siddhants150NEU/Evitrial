@@ -7,10 +7,15 @@ from .schemas import Criterion, Decision
 from transformers import AutoTokenizer, AutoModelForTokenClassification, AutoModelForSequenceClassification
 from transformers import pipeline
 import torch
+from peft import PeftModel
 
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('punkt_tab')
+
+_ZeroShotModel = None
+_loraModel = None
+_ID2LABEL = {0: "MET", 1: "NOT_MET", 2: "UNKNOWN"}
 
 def match(note: str, criterion: Criterion, config: dict) -> Decision:
     if config["matcher"]["rung"] == "rules":
@@ -115,9 +120,13 @@ def ruleMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     # raise NotImplementedError("implement the lexical rule baseline")
 
 def zeroShotMatch(note: str, criterion: Criterion, config: dict) -> Decision:
-    model_name = "pritamdeka/PubMedBERT-MNLI-MedNLI" #config["matcher"]["nliModel"]
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name)
+    global _ZeroShotModel
+    if _ZeroShotModel is None:
+        model_name = "pritamdeka/PubMedBERT-MNLI-MedNLI" #config["matcher"]["nliModel"]
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        _ZeroShotModel = (tokenizer, model)
+    tokenizer, model = _ZeroShotModel
     # ner_pipeline = pipeline("token-classification", model=model, tokenizer=tokenizer, aggregation_strategy="simple")
     sentences = sent_tokenize(note) if note and note.strip() else []
     
@@ -175,4 +184,62 @@ def zeroShotMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     
 
 def loraMatch(note: str, criterion: Criterion, config: dict) -> Decision:
+    global _loraModel
+    if _loraModel is None:
+        tokenizer = AutoTokenizer.from_pretrained(config["matcher"]["lora"]["baseModel"])
+        baseModel = AutoModelForSequenceClassification.from_pretrained(
+            config["matcher"]["lora"]["baseModel"], num_labels=len(_ID2LABEL)
+        )
+        model = PeftModel.from_pretrained(baseModel, config["paths"]["loraAdapter"])
+        model.eval()
+        _loraModel = (tokenizer, model)
+    
+    tokenizer, model = _loraModel
+    
+    sentences = sent_tokenize(note) if note and note.strip() else []
+    
+    if not sentences:
+        return Decision(
+            label="UNKNOWN",
+            confidence = 0.0,
+            trialSpan=criterion.text,
+            patientSpan=None, 
+            criterionId=criterion.criterionId,
+            criterionType=criterion.criterionType,
+            verified=False
+        )
+        
+    bestSentence, bestLabel, bestConfidence = None, "UNKNOWN", 0.0
+    
+    for s in sentences:
+        encoded = tokenizer(
+            s,
+            criterion.text,
+            truncation = True,
+            padding = True,
+            return_tensors = "pt",
+            max_length = config["matcher"]["lora"]["maxLength"]
+        )
+        with torch.no_grad():
+            logits = model(**encoded).logits
+        probs = torch.softmax(logits, dim = -1)[0]
+        maxProb, maxIdx = torch.max(probs, dim=-1)
+        currentLabel = _ID2LABEL[maxIdx.item()]
+        
+        if currentLabel!="UNKNOWN" and maxProb.item() > bestConfidence:
+            bestConfidence = maxProb.item()
+            bestLabel = currentLabel
+            bestSentence = s.strip()
+            
+    return Decision(
+        label = bestLabel,
+        confidence = round(bestConfidence, 4),
+        trialSpan=criterion.text,
+        patientSpan=bestSentence,
+        criterionId=criterion.criterionId,
+        criterionType=criterion.criterionType,
+        verified=False
+    )
+            
+        
     raise NotImplementedError("implement the LoRA-fine-tuned matcher")

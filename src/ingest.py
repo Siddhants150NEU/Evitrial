@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import re
 import os
+import random
 os.environ.setdefault("IR_DATASETS_HOME", os.path.abspath("data/ir_datasets"))
 from .schemas import PatientCriterionPair, Trial
 
@@ -133,3 +134,24 @@ def _parseIndexList(value: str):
         return list(ast.literal_eval(value)) if value else []
     except Exception:
         return []
+    
+def splitPairs(pairs: list[PatientCriterionPair], config:dict) -> dict[str, list]:
+    splitConfig = config["splits"]
+    patientIds = sorted({p.patientId for p in pairs})
+    random.Random(config["seed"]).shuffle(patientIds)
+    trainSetSize = round(len(patientIds)*splitConfig["train"])
+    valSetSize = round(len(patientIds)*splitConfig["val"])
+    trainIds = set(patientIds[:trainSetSize])
+    valIds = set(patientIds[trainSetSize: trainSetSize+valSetSize])
+    
+    patientSplits = {"train": [], "val": [], "test": []}
+    
+    for a in pairs:
+        if a.patientId in trainIds:
+            patientSplits["train"].append(a)
+        elif a.patientId in valIds:
+            patientSplits["val"].append(a)
+        else:
+            patientSplits["test"].append(a)
+    
+    return patientSplits

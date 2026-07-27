@@ -16,7 +16,13 @@ install: ## Install runtime deps + editable package
 
 ingest-qdrant:
 	$(PY) -m src.indexQdrant
-	
+
+train-lora:
+	$(PY) -m src.trainLora
+
+indexing:
+	$(PY) -m src.i
+
 check: ## Full data sanity check (downloads TREC CT 2021 corpus on first run — slow)
 	$(PY) -m src.checkIngest
 

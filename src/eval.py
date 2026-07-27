@@ -8,12 +8,14 @@ import traceback
 import bm25s, ir_measures
 import logging
 from ir_measures import MAP, R, calc_aggregate, nDCG
+from transformers import AutoModelForSequenceClassification
+from . import match
+from .schemas import Criterion
+from sklearn.metrics import f1_score, precision_recall_fscore_support, confusion_matrix
 from . import ingest
 import bm25s, torch
 from transformers import AutoTokenizer, AutoModel
 from qdrant_client import QdrantClient
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -109,15 +111,149 @@ def retrievalMetrics(config: dict) -> dict:
             run[qid] = {h.payload["nctId"]: float(h.score) for h in hits}
         return run
 
+    def _norm(d):
+        if not d: return {}
+        lo, hi = min(d.values()), max(d.values())
+        return {k: 1.0 for k in d} if hi == lo else {k: (v-lo)/(hi-lo) for k, v in d.items()}
+
+    def fuse(ra, rb, alpha):
+        out = {}
+        for qid in ra:
+            na, nb = _norm(ra[qid]), _norm(rb.get(qid, {}))
+            out[qid] = {d: alpha*nb.get(d, 0) + (1-alpha)*na.get(d, 0) for d in set(na) | set(nb)}
+        return out
+    
+    bm25R, denseR = bm25Run(), denseRun()
+    hybridR = fuse(bm25R, denseR, rc["alpha"])
+
+
+    ceTok = AutoTokenizer.from_pretrained(rc["crossEncoder"])
+    ce = AutoModelForSequenceClassification.from_pretrained(rc["crossEncoder"])
+    textById = {t.nctId: t.searchText() for t in trials}     # once
+    noteById = dict(topics)
+
+    def rerankRun(base, keep=50):
+        out = {}
+        for qid, hits in base.items():
+            ids = sorted(hits, key=hits.get, reverse=True)[:keep] 
+            pairs = [[noteById[qid], textById[i]] for i in ids]
+            enc = ceTok(pairs,  truncation=True, max_length=512, padding=True, return_tensors="pt")
+            with torch.no_grad():
+                sc = ce(**enc).logits.squeeze(-1)
+            out[qid] = {i: float(s) for i, s in zip(ids, sc)}
+        return out
+    
+    rerankR = rerankRun(hybridR)
+
     measures = [nDCG@10, R@10, R@20, R@50, MAP]
     results = {}
-    for name, run in [("bm25", bm25Run()), ("dense", denseRun())]:
-        agg = calc_aggregate(measures, qrels, run)
-        results[name] = {str(m): round(float(v), 4) for m, v in agg.items()}
+    for name, run in [("bm25", bm25R), ("dense", denseR),
+                      ("hybrid", hybridR), ("hybrid+rerank", rerankR)]:
+        results[name] = {str(m): round(float(v), 4) for m, v in calc_aggregate(measures, qrels, run).items()}
     return results
 
+    # measures = [nDCG@10, R@10, R@20, R@50, MAP]
+    # results = {}
+    # for name, run in [("bm25", bm25Run()), ("dense", denseRun())]:
+    #     agg = calc_aggregate(measures, qrels, run)
+    #     results[name] = {str(m): round(float(v), 4) for m, v in agg.items()}
+    # return results
+
+import numpy as np
+def _boostrapCI(yTrue, yPred, labels, nresamples = 1000, seed = None):
+    rng = np.random.default_rng(seed)
+    yTrueArr, yPredArr = np.array(yTrue), np.array(yPred)
+    n = len(yTrue)
+    scores = []
+    for a in range(nresamples):
+        idx = rng.integers(0, n, size = n)
+        scores.append(f1_score(yTrueArr[idx], yPredArr[idx], labels=labels, average="macro", zero_division=0))
+    lo, hi = np.percentile(scores, [2.5, 97.5])
+    return float(lo), float(hi)
+
+# def criterionMetrics(config: dict) -> dict:
+#     rows = ingest.loadAnnotations()
+#     pairs = ingest.toEvalPairs(rows)
+#     valPairs = ingest.splitPairs(pairs, config)["val"]
+
+#     labels = ["MET", "NOT_MET", "UNKNOWN"]
+#     yTrue, yPred = [], []
+#     for pair in valPairs:
+#         criterion = Criterion(
+#             criterionId=pair.criterionId,
+#             nctId=pair.nctId,
+#             text=pair.criterionText,
+#             criterionType=pair.criterionType,
+#         )
+#         decision = match.match(pair.note, criterion, config)
+#         yTrue.append(pair.label)
+#         yPred.append(decision.label)
+
+#     macroF1 = f1_score(yTrue, yPred, labels=labels, average="macro", zero_division=0)
+#     ciLow, ciHigh = _boostrapCI(yTrue, yPred, labels, nresamples=1000, seed=config["seed"])
+#     precision, recall, f1, support = precision_recall_fscore_support(
+#         yTrue, yPred, labels=labels, zero_division=0
+#     )
+#     perClass = {
+#         lab: {"precision": float(p), "recall": float(r), "f1": float(f), "support": int(s)}
+#         for lab, p, r, f, s in zip(labels, precision, recall, f1, support)
+#     }
+#     cm = confusion_matrix(yTrue, yPred, labels=labels).tolist()
+
+#     return {
+#         "rung": config["matcher"]["rung"],
+#         "macroF1": float(macroF1),
+#         "perClass": perClass,
+#         "confusion": {"labels": labels, "matrix":cm},
+#         "macroF1CI": [ciLow, ciHigh],
+#         "n": len(valPairs),
+#     }
+
 def criterionMetrics(config: dict) -> dict:
-    raise NotImplementedError
+    rows = ingest.loadAnnotations()
+    pairs = ingest.toEvalPairs(rows)
+    valPairs = ingest.splitPairs(pairs, config)["val"]
+    labels = ["MET", "NOT_MET", "UNKNOWN"]
+
+    results = {}
+    for rung in ["rules", "zeroShot", "lora"]:
+        rungConfig = {**config, "matcher": {**config["matcher"], "rung": rung}}
+        yTrue, yPred = [], []
+        try:
+            for pair in valPairs:
+                criterion = Criterion(
+                    criterionId=pair.criterionId,
+                    nctId=pair.nctId,
+                    text=pair.criterionText,
+                    criterionType=pair.criterionType,
+                )
+                decision = match.match(pair.note, criterion, rungConfig)
+                yTrue.append(pair.label)
+                yPred.append(decision.label)
+        except NotImplementedError:
+            results[rung] = {"status": "not_implemented"}
+            continue
+
+        macroF1 = f1_score(yTrue, yPred, labels=labels, average="macro", zero_division=0)
+        ciLow, ciHigh = _boostrapCI(yTrue, yPred, labels, nresamples=1000, seed=config["seed"])
+        precision, recall, f1, support = precision_recall_fscore_support(
+            yTrue, yPred, labels=labels, zero_division=0
+        )
+        perClass = {
+            lab: {"precision": float(p), "recall": float(r), "f1": float(f), "support": int(s)}
+            for lab, p, r, f, s in zip(labels, precision, recall, f1, support)
+        }
+        cm = confusion_matrix(yTrue, yPred, labels=labels).tolist()
+
+        results[rung] = {
+            "macroF1": float(macroF1),
+            "perClass": perClass,
+            "confusion": {"labels": labels, "matrix": cm},
+            "macroF1CI": [ciLow, ciHigh],
+            "n": len(valPairs),
+        }
+
+    return results
 
 def faithfulnessMetrics(config: dict) -> dict:
     raise NotImplementedError

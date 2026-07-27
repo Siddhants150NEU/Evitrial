@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 from .schemas import Candidate, Trial
 
+_BM25 = None
+_QMODEL = None
+_CLIENT = None
+
 def retrieve(note: str, config: dict, k: int) -> list[Candidate]:
     bmRet = bm25Search(note, config=config, topN=k)
     dnRet = denseSearch(note, config=config, topN=k)
@@ -32,10 +36,17 @@ def bm25Search(note: str, config: dict, topN: int) -> list[Candidate]:
     # corpus = BM25.load(ingest.loadTrials(), document_column="text")
     # retriever = BM25.index(corpus)
     # results = retriever.retrieve(note, k=topN)
-    trials = list(ingest.loadTrials())
-    corpus_tokens = bm25s.tokenize([t.searchText() for t in trials], stopwords = "en")
-    retriever = bm25s.BM25()
-    retriever.index(corpus_tokens)
+    global _BM25
+    if _BM25 is None:
+        trials = list(ingest.loadTrials())
+        idx = bm25s.BM25()
+        idx.index(bm25s.tokenize([t.searchText() for t in trials], stopwords="en"))
+        _BM25 = (trials, idx)
+    trials, retriever = _BM25
+    # trials = list(ingest.loadTrials())
+    # corpus_tokens = bm25s.tokenize([t.searchText() for t in trials], stopwords = "en")
+    # retriever = bm25s.BM25()
+    # retriever.index(corpus_tokens)
     query_tokens = bm25s.tokenize(note, stopwords = "en")
     results, scores = retriever.retrieve(query_tokens, k=topN)
     # for doc_idx, score in zip(results[0], scores[0]):
@@ -46,12 +57,17 @@ def bm25Search(note: str, config: dict, topN: int) -> list[Candidate]:
 
 def denseSearch(note: str, config: dict, topN: int) -> list[Candidate]:
     #https://github.com/ncbi/MedCPT
-    tokenizer_query = AutoTokenizer.from_pretrained("ncbi/MedCPT-Query-Encoder")
-    model_query = AutoModel.from_pretrained("ncbi/MedCPT-Query-Encoder")
+    # tokenizer_query = AutoTokenizer.from_pretrained("ncbi/MedCPT-Query-Encoder")
+    # model_query = AutoModel.from_pretrained("ncbi/MedCPT-Query-Encoder")
+    global _QMODEL
+    if _QMODEL is None:
+        _QMODEL = (AutoTokenizer.from_pretrained("ncbi/MedCPT-Query-Encoder"),
+                   AutoModel.from_pretrained("ncbi/MedCPT-Query-Encoder"))
+    tokenizer_query, model_query = _QMODEL
 
     # tokenizer_article = AutoTokenizer.from_pretrained("ncbi/MedCPT-Article-Encoder")
     # model_article = AutoModel.from_pretrained("ncbi/MedCPT-Article-Encoder")
-    
+
     # this shouldnt work here
     # trials = list(ingest.loadTrials())
     # corpus_tokens = [t.searchText() for t in trials]
@@ -60,12 +76,17 @@ def denseSearch(note: str, config: dict, topN: int) -> list[Candidate]:
     # with torch.no_grad():
     #     article_embeddings = model_article(**encoded_articles)[0][:, 0].cpu().numpy()
 
-    encoded_query = tokenizer_query(note, return_tensors='pt')
+    encoded_query = tokenizer_query(note, truncation=True, max_length=512, return_tensors='pt')
     with torch.no_grad():
-        query_embedding = model_query(**encoded_query)[0][0].cpu().numpy()
+        # query_embedding = model_query(**encoded_query)[0][0].cpu().numpy()
+        query_embedding = model_query(**encoded_query)[0][:, 0][0].cpu().numpy()
     
     try:
-        client = QdrantClient(path=config["retrieval"]["qdrant"]["location"]) 
+        global _CLIENT
+        if _CLIENT is None:
+            _CLIENT = QdrantClient(path=config["retrieval"]["qdrant"]["location"])
+        client = _CLIENT
+        # client = QdrantClient(path=config["retrieval"]["qdrant"]["location"]) 
     except:
         logger.debug("--qdrant connect failure--")
         return []
@@ -93,9 +114,14 @@ def denseSearch(note: str, config: dict, topN: int) -> list[Candidate]:
     
     query_vector = query_embedding.tolist()
 
-    search_results = client.search(
+    # search_results = client.search(
+    #     collection_name=collection_name,
+    #     query=query_vector,
+    #     limit=topN 
+    # ).points
+    search_results = client.query_points(
         collection_name=collection_name,
-        query_vector=query_vector,
+        query=query_vector,
         limit=topN 
     ).points
 
