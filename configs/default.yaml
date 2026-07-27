@@ -29,7 +29,8 @@ matcher:
   rung: zeroShot                        # rules | zeroShot | lora  (which matcher is active)
   nliModel: ncbi/MedCPT-Cross-Encoder   # placeholder; swap for your chosen biomedical NLI
   lora:
-    baseModel: microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract
+    # baseModel: microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract
+    baseModel: pritamdeka/PubMedBERT-MNLI-MedNLI
     rank: 8
     alpha: 16
     dropout: 0.05

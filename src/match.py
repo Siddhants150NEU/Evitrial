@@ -15,7 +15,8 @@ nltk.download('punkt_tab')
 
 _ZeroShotModel = None
 _loraModel = None
-_ID2LABEL = {0: "MET", 1: "NOT_MET", 2: "UNKNOWN"}
+# _ID2LABEL = {0: "MET", 1: "NOT_MET", 2: "UNKNOWN"}
+_ID2LABEL = {0: "NOT_MET", 1: "MET", 2: "UNKNOWN"}
 
 def match(note: str, criterion: Criterion, config: dict) -> Decision:
     if config["matcher"]["rung"] == "rules":

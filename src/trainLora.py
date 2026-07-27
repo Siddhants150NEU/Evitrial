@@ -10,8 +10,23 @@ from peft import LoraConfig, get_peft_model, TaskType
 from datasets import Dataset
 from . import ingest
 from .schemas import PatientCriterionPair
+from torch import nn
+import torch
+from collections import Counter
 
-_LABEL2ID = {"MET": 0, "NOT_MET": 1, "UNKNOWN": 2}
+_LABEL2ID = {"NOT_MET": 0, "MET": 1, "UNKNOWN": 2}
+
+class WeightedTrainer(Trainer):
+    def __init__(self, *args, classWeights=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.classWeights = classWeights
+
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        lossFct = nn.CrossEntropyLoss(weight=self.classWeights.to(outputs.logits.device))
+        loss = lossFct(outputs.logits, labels)
+        return (loss, outputs) if return_outputs else loss
 
 # https://huggingface.co/docs/peft/en/package_reference/lora
 # https://medium.com/@ichigo.v.gen12/understanding-lora-with-python-implementation-31375d2d1c10
@@ -35,6 +50,14 @@ def train(config: dict) -> None:
     trainPairs = [p for p in trainPairs if p.note and p.criterionText]
     if len(trainPairs) < before:
         print(f"dropped {before - len(trainPairs)} train pairs with missing text")
+        
+    counts = Counter(_LABEL2ID[p.label] for p in trainPairs)
+    total = len(trainPairs)
+    classWeights = torch.tensor(
+        [total / (len(_LABEL2ID) * counts[i]) for i in range(len(_LABEL2ID))],
+        dtype=torch.float,
+    )
+    
     tokenizer = AutoTokenizer.from_pretrained(config["matcher"]["lora"]["baseModel"])
     baseModel = AutoModelForSequenceClassification.from_pretrained(config["matcher"]["lora"]["baseModel"], num_labels = len(_LABEL2ID))
     loraConfig = LoraConfig(
@@ -56,11 +79,19 @@ def train(config: dict) -> None:
         report_to = [],
     )
     
-    trainer = Trainer(
+    # trainer = Trainer(
+    #     model = model,
+    #     args = trainingArgs,
+    #     train_dataset = trainDataset,
+    #     data_collator = collator,
+    # )
+    
+    trainer = WeightedTrainer(
         model = model,
         args = trainingArgs,
         train_dataset = trainDataset,
-        data_collator = collator
+        data_collator = collator,
+        classWeights = classWeights
     )
     trainer.train()
     model.save_pretrained(config["paths"]["loraAdapter"])
