@@ -30,7 +30,8 @@ matcher:
   nliModel: ncbi/MedCPT-Cross-Encoder   # placeholder; swap for your chosen biomedical NLI
   lora:
     # baseModel: microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract
-    baseModel: pritamdeka/PubMedBERT-MNLI-MedNLI
+    # baseModel: pritamdeka/PubMedBERT-MNLI-MedNLI
+    baseModel: MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli
     rank: 8
     alpha: 16
     dropout: 0.05

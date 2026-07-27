@@ -16,7 +16,12 @@ nltk.download('punkt_tab')
 _ZeroShotModel = None
 _loraModel = None
 # _ID2LABEL = {0: "MET", 1: "NOT_MET", 2: "UNKNOWN"}
-_ID2LABEL = {0: "NOT_MET", 1: "MET", 2: "UNKNOWN"}
+# _ID2LABEL = {0: "NOT_MET", 1: "MET", 2: "UNKNOWN"}
+_EVI_TO_NLI = {"MET": "entailment", "NOT_MET": "contradiction", "UNKNOWN": "neutral"}
+
+def _deriveIdToLabel(model) -> dict[int, str]:
+    nliToEvi = {nli: evi for evi, nli in _EVI_TO_NLI.items()}
+    return {i: nliToEvi[lbl.lower()] for i, lbl in model.config.id2label.items()}
 
 def match(note: str, criterion: Criterion, config: dict) -> Decision:
     if config["matcher"]["rung"] == "rules":
@@ -123,7 +128,8 @@ def ruleMatch(note: str, criterion: Criterion, config: dict) -> Decision:
 def zeroShotMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     global _ZeroShotModel
     if _ZeroShotModel is None:
-        model_name = "pritamdeka/PubMedBERT-MNLI-MedNLI" #config["matcher"]["nliModel"]
+        # model_name = "pritamdeka/PubMedBERT-MNLI-MedNLI" #config["matcher"]["nliModel"]
+        model_name = "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForSequenceClassification.from_pretrained(model_name)
         _ZeroShotModel = (tokenizer, model)
@@ -186,16 +192,27 @@ def zeroShotMatch(note: str, criterion: Criterion, config: dict) -> Decision:
 
 def loraMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     global _loraModel
+    # if _loraModel is None:
+    #     tokenizer = AutoTokenizer.from_pretrained(config["matcher"]["lora"]["baseModel"])
+    #     baseModel = AutoModelForSequenceClassification.from_pretrained(
+    #         config["matcher"]["lora"]["baseModel"], num_labels=len(_ID2LABEL)
+    #     )
+    #     model = PeftModel.from_pretrained(baseModel, config["paths"]["loraAdapter"])
+    #     model.eval()
+    #     _loraModel = (tokenizer, model)
+    
     if _loraModel is None:
         tokenizer = AutoTokenizer.from_pretrained(config["matcher"]["lora"]["baseModel"])
         baseModel = AutoModelForSequenceClassification.from_pretrained(
-            config["matcher"]["lora"]["baseModel"], num_labels=len(_ID2LABEL)
+            config["matcher"]["lora"]["baseModel"], num_labels=len(_EVI_TO_NLI)
         )
+        idToLabel = _deriveIdToLabel(baseModel)
         model = PeftModel.from_pretrained(baseModel, config["paths"]["loraAdapter"])
         model.eval()
-        _loraModel = (tokenizer, model)
+        _loraModel = (tokenizer, model, idToLabel)
     
-    tokenizer, model = _loraModel
+    # tokenizer, model = _loraModel
+    tokenizer, model, idToLabel = _loraModel
     
     sentences = sent_tokenize(note) if note and note.strip() else []
     
@@ -225,7 +242,8 @@ def loraMatch(note: str, criterion: Criterion, config: dict) -> Decision:
             logits = model(**encoded).logits
         probs = torch.softmax(logits, dim = -1)[0]
         maxProb, maxIdx = torch.max(probs, dim=-1)
-        currentLabel = _ID2LABEL[maxIdx.item()]
+        # currentLabel = _ID2LABEL[maxIdx.item()]
+        currentLabel = idToLabel[maxIdx.item()]
         
         if currentLabel!="UNKNOWN" and maxProb.item() > bestConfidence:
             bestConfidence = maxProb.item()

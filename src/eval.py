@@ -17,6 +17,8 @@ import bm25s, torch
 from transformers import AutoTokenizer, AutoModel
 from qdrant_client import QdrantClient
 
+from . import verify as verifyModule
+
 logger = logging.getLogger(__name__)
 
 from .config import loadConfig, setSeeds
@@ -209,18 +211,18 @@ def _boostrapCI(yTrue, yPred, labels, nresamples = 1000, seed = None):
 #         "n": len(valPairs),
 #     }
 
-def criterionMetrics(config: dict) -> dict:
+def criterionMetrics(config: dict, split:str = "val") -> dict:
     rows = ingest.loadAnnotations()
     pairs = ingest.toEvalPairs(rows)
-    valPairs = ingest.splitPairs(pairs, config)["val"]
+    targetPairs = ingest.splitPairs(pairs, config)[split]
     labels = ["MET", "NOT_MET", "UNKNOWN"]
 
-    results = {}
+    results = {} 
     for rung in ["rules", "zeroShot", "lora"]:
         rungConfig = {**config, "matcher": {**config["matcher"], "rung": rung}}
         yTrue, yPred = [], []
         try:
-            for pair in valPairs:
+            for pair in targetPairs:
                 criterion = Criterion(
                     criterionId=pair.criterionId,
                     nctId=pair.nctId,
@@ -250,16 +252,167 @@ def criterionMetrics(config: dict) -> dict:
             "perClass": perClass,
             "confusion": {"labels": labels, "matrix": cm},
             "macroF1CI": [ciLow, ciHigh],
-            "n": len(valPairs),
+            "n": len(targetPairs),
         }
 
     return results
 
+# def faithfulnessMetrics(config: dict) -> dict:
+#     rows = ingest.loadAnnotations()
+#     pairs = ingest.toEvalPairs(rows)
+#     valPairs = ingest.splitPairs(pairs, config)["val"]
+#     results = {}
+#     for rung in ["rules", "zeroShot", "lora"]:
+#         rungConfig = {**config["matcher"], "rung": rung}
+#         attempted = 0
+#         offSupported = 0
+#         shipped = 0
+#         onSupported = 0
+#         try:
+#             for p in valPairs:
+#                 criterion = Criterion(
+#                     criterionId=p.criterionId,
+#                     nctId=p.nctId,
+#                     text=p.criterionText,
+#                     criterionType=p.criterionType
+#                 )
+#                 decision = match.match(
+#                     p.note, 
+#                     criterion,
+#                     rungConfig
+#                 )
+#                 if decision.label == "UNKNOWN":
+#                     continue
+#                 attempted += 1
+#                 if verifyModule.isSupported(decision, p.note, p.criterionText):
+#                     offSupported+=1
+#                 verified = verifyModule.verify(decision, p.note, p.criterionText)
+#                 if verified.label!="UNKNOWN":
+#                     shipped +=1 
+#                     if verifyModule.isSupported(verified, p.note, p.criterionText):
+#                         onSupported += 1
+#         except NotImplementedError:
+#             results[rung] = {"status":"not_implemented"}
+#             continue
+        
+#         baselineFaith = round(offSupported/attempted, 4) if attempted else 0.0
+#         faithfullness = round(onSupported/shipped, 4) if shipped else 1.0
+        
+#         results[rung] = {
+#             "attempted": attempted,
+#             "baselineFaithfullness": baselineFaith,
+#             "faithfullness": faithfullness,
+#             "delta": round(faithfullness-baselineFaith, 4),
+#             "forcedAbstentions": attempted-shipped
+#         }
+#         return results
+
 def faithfulnessMetrics(config: dict) -> dict:
-    raise NotImplementedError
+    rows = ingest.loadAnnotations()
+    pairs = ingest.toEvalPairs(rows)
+    valPairs = ingest.splitPairs(pairs, config)["val"]
+    results = {}
+    for rung in ["rules", "zeroShot", "lora"]:
+        rungConfig = {**config, "matcher": {**config["matcher"], "rung": rung}}
+        attempted = 0
+        offSupported = 0
+        shipped = 0
+        onSupported = 0
+        try:
+            for p in valPairs:
+                criterion = Criterion(
+                    criterionId=p.criterionId,
+                    nctId=p.nctId,
+                    text=p.criterionText,
+                    criterionType=p.criterionType
+                )
+                decision = match.match(
+                    p.note,
+                    criterion,
+                    rungConfig
+                )
+                if decision.label == "UNKNOWN":
+                    continue
+                attempted += 1
+                if verifyModule.isSupported(decision, p.note, p.criterionText):
+                    offSupported += 1
+                verified = verifyModule.verify(decision, p.note, p.criterionText)
+                if verified.label != "UNKNOWN":
+                    shipped += 1
+                    if verifyModule.isSupported(verified, p.note, p.criterionText):
+                        onSupported += 1
+        except NotImplementedError:
+            results[rung] = {"status": "not_implemented"}
+            continue
+
+        baselineFaith = round(offSupported / attempted, 4) if attempted else 0.0
+        faithfulness = round(onSupported / shipped, 4) if shipped else 1.0
+
+        results[rung] = {
+            "attempted": attempted,
+            "baselineFaithfulness": baselineFaith,
+            "faithfulness": faithfulness,
+            "delta": round(faithfulness - baselineFaith, 4),
+            "forcedAbstentions": attempted-shipped
+        }
+    return results
 
 def abstentionMetrics(config: dict) -> dict:
-    raise NotImplementedError
+    rows = ingest.loadAnnotations()
+    pairs = ingest.toEvalPairs(rows)
+    valPairs = ingest.splitPairs(pairs, config)["val"]
+
+    results = {}
+    for rung in ["rules", "zeroShot", "lora"]:
+        rungConfig = {**config, "matcher": {**config["matcher"], "rung": rung}}
+        records = []
+
+        try:
+            for pair in valPairs:
+                criterion = Criterion(
+                    criterionId=pair.criterionId, 
+                    nctId=pair.nctId,
+                    text=pair.criterionText, 
+                    criterionType=pair.criterionType,
+                )
+                decision = match.match(pair.note, criterion, rungConfig)
+                verified = verifyModule.verify(decision, pair.note, pair.criterionText)
+                confidence = 0.0 if verified.label == "UNKNOWN" else verified.confidence
+                records.append((pair.label, verified.label, confidence))
+        except NotImplementedError:
+            results[rung] = {"status": "not_implemented"}
+            continue
+
+        n = len(records)
+        answered = [(g, p) for g, p, _ in records if p != "UNKNOWN"]
+        coverage = round(len(answered)/n, 4) if n else 0.0
+        selectiveAccuracy = (
+            round(sum(1 for g, p in answered if g == p) / len(answered), 4)
+            if answered else 0.0
+        )
+
+        goldUnknown = [(g, p) for g, p, _ in records if g == "UNKNOWN"]
+        unknownRecall = (
+            round(sum(1 for g, p in goldUnknown if p == "UNKNOWN") / len(goldUnknown), 4)
+            if goldUnknown else 0.0
+        )
+
+        ranked = sorted(records, key=lambda r:r[2], reverse=True)
+        riskCoverage = []
+        correct = 0
+        for i, (gold, pred, _) in enumerate(ranked, start=1):
+            if pred != "UNKNOWN" and pred == gold:
+                correct += 1
+            riskCoverage.append({"coverage":round(i/n, 4), "accuracy": round(correct / i, 4)})
+
+        results[rung] = {
+            "n": n,
+            "coverage": coverage,
+            "selectiveAccuracy": selectiveAccuracy,
+            "unknownRecall": unknownRecall,
+            "riskCoverage": riskCoverage,
+        }
+    return results
 
 def calibration(config: dict) -> dict:
     raise NotImplementedError
