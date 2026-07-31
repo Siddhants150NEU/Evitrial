@@ -36,7 +36,7 @@ matcher:
     alpha: 16
     dropout: 0.05
     epochs: 3
-    learningRate: 0.0002
+    learningRate: 0.00005
     maxLength: 512
 
 # ---- ranking (Stage F) -- read by rank.aggregate() ----

@@ -8,6 +8,7 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification, AutoMod
 from transformers import pipeline
 import torch
 from peft import PeftModel
+from . import ingest
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -61,7 +62,7 @@ def ruleMatch(note: str, criterion: Criterion, config: dict) -> Decision:
             verified=False,
         )
         
-    sentences = sent_tokenize(note) if note and note.strip() else []
+    sentences = ingest.noteSentences(note) if note and note.strip() else []
     bestSentence = ""
     max_matches = 0
     
@@ -135,7 +136,7 @@ def zeroShotMatch(note: str, criterion: Criterion, config: dict) -> Decision:
         _ZeroShotModel = (tokenizer, model)
     tokenizer, model = _ZeroShotModel
     # ner_pipeline = pipeline("token-classification", model=model, tokenizer=tokenizer, aggregation_strategy="simple")
-    sentences = sent_tokenize(note) if note and note.strip() else []
+    sentences = ingest.noteSentences(note) if note and note.strip() else []
     
     if not sentences:
         return Decision(
@@ -214,7 +215,7 @@ def loraMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     # tokenizer, model = _loraModel
     tokenizer, model, idToLabel = _loraModel
     
-    sentences = sent_tokenize(note) if note and note.strip() else []
+    sentences = ingest.noteSentences(note) if note and note.strip() else []
     
     if not sentences:
         return Decision(

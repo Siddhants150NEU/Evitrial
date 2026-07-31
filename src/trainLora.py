@@ -9,10 +9,13 @@ from transformers import (
 from peft import LoraConfig, get_peft_model, TaskType
 from datasets import Dataset
 from . import ingest
-from .schemas import PatientCriterionPair
+from .schemas import PatientCriterionPair, normalize
 from torch import nn
 import torch
 from collections import Counter
+import random
+from dataclasses import replace
+from nltk.tokenize import sent_tokenize
 
 # _LABEL2ID = {"NOT_MET": 0, "MET": 1, "UNKNOWN": 2}
 _EVI_TO_NLI = {"MET": "entailment", "NOT_MET": "contradiction", "UNKNOWN": "neutral"}
@@ -38,7 +41,9 @@ class WeightedTrainer(Trainer):
 # https://medium.com/@ichigo.v.gen12/understanding-lora-with-python-implementation-31375d2d1c10
 # https://lightning.ai/lightning-ai/templates/code-lora-from-scratch?section=featured
 def _buildDataset(pairs: list[PatientCriterionPair], tokenizer, maxLength: int, labelMap: dict[str, int]) -> Dataset:
-    texts = [p.patientSpan if p.patientSpan else p.note for p in pairs]
+    # texts = [p.patientSpan if p.patientSpan else p.note for p in pairs]
+    assert all(p.patientSpan for p in pairs), "span-less pair leaked into training — see train()'s filter"
+    texts = [p.patientSpan for p in pairs]
     encodings = tokenizer(
         texts,
         [p.criterionText for p in pairs],
@@ -49,6 +54,18 @@ def _buildDataset(pairs: list[PatientCriterionPair], tokenizer, maxLength: int, 
     encodings["labels"] = [labelMap[p.label] for p in pairs]
     return Dataset.from_dict(encodings)
 
+def _neutralNegatives(pairs: list[PatientCriterionPair], negPerPair: int, seed: int) -> list[PatientCriterionPair]:
+    rng = random.Random(seed)
+    negatives: list[PatientCriterionPair] = []
+    for p in pairs:
+        goldNorm = normalize(p.patientSpan)
+        others = [s.strip() for s in ingest.noteSentences(p.note)
+                  if normalize(s) and normalize(s) not in goldNorm]
+        rng.shuffle(others)
+        for sentence in others[:negPerPair]:
+            negatives.append(replace(p, patientSpan=sentence, label="UNKNOWN"))
+    return negatives
+
 def train(config: dict) -> None:
     rows = ingest.loadAnnotations()
     pairs = ingest.toEvalPairs(rows)
@@ -57,6 +74,20 @@ def train(config: dict) -> None:
     trainPairs = [p for p in trainPairs if p.note and p.criterionText]
     if len(trainPairs) < before:
         print(f"dropped {before - len(trainPairs)} train pairs with missing text")
+        
+    withSpan = [p for p in trainPairs if p.patientSpan]
+    print(
+        f"training on {len(withSpan)}/{len(trainPairs)} span-bearing pairs "
+        f"(dropped {len(trainPairs) - len(withSpan)} span-less); "
+        f"labels: {Counter(p.label for p in withSpan)}"
+    )
+    trainPairs = withSpan
+    negPerPair = config["matcher"]["lora"].get("negPerPair", 1)
+    if negPerPair:
+        negs = _neutralNegatives(trainPairs, negPerPair, config["seed"])
+        print(f"added {len(negs)} neutral-negative (UNKNOWN) examples; "
+              f"labels now: {Counter(p.label for p in trainPairs + negs)}")
+        trainPairs = trainPairs + negs
         
     # counts = Counter(_LABEL2ID[p.label] for p in trainPairs)
     # total = len(trainPairs)
@@ -89,6 +120,10 @@ def train(config: dict) -> None:
         task_type = TaskType.SEQ_CLS,
     )
     model = get_peft_model(baseModel, loraConfig)
+    for name, param in model.named_parameters():
+        if "lora_" not in name:
+            param.requires_grad_(False)
+    model.print_trainable_parameters() 
     
     # trainDataset = _buildDataset(trainPairs, tokenizer, config["matcher"]["lora"]["maxLength"])
     trainDataset = _buildDataset(trainPairs, tokenizer, config["matcher"]["lora"]["maxLength"], labelMap)

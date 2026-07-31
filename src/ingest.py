@@ -4,6 +4,8 @@ import ast
 import re
 import os
 import random
+from nltk.tokenize import sent_tokenize
+from datasets import load_dataset
 os.environ.setdefault("IR_DATASETS_HOME", os.path.abspath("data/ir_datasets"))
 from .schemas import PatientCriterionPair, Trial
 
@@ -11,10 +13,9 @@ from .schemas import PatientCriterionPair, Trial
 TREC_2021 = "clinicaltrials/2021/trec-ct-2021"
 TREC_2022 = "clinicaltrials/2021/trec-ct-2022"
 ANNOTATIONS_REPO = "ncbi/TrialGPT-Criterion-Annotations"
+import ir_datasets
 
 def _dataset(name: str = TREC_2021):
-    import ir_datasets
-
     return ir_datasets.load(name)
 
 def loadTrials(name: str = TREC_2021):
@@ -78,7 +79,6 @@ def mapToEviLabels(expertEligibility: str) -> str:
     return _LABEL_MAP[expertEligibility.strip().lower()]
 
 def loadAnnotations(repo: str = ANNOTATIONS_REPO, split: str = "train") -> list[dict]:
-    from datasets import load_dataset
 
     dataset = load_dataset(repo, split=split)
     return [_rowToDict(row) for row in dataset]
@@ -128,6 +128,14 @@ def splitNumberedNote(note: str) -> list[str]:
     if not sentences:
         return [note.strip()]
     return [sentences.get(i, "") for i in range(max(sentences) + 1)]
+
+def noteSentences(note:str)->list[str]:
+    if not note or not note.strip():
+        return []
+    chunks = [c.strip() for c in splitNumberedNote(note) if c.strip()]
+    if len(chunks) > 1:
+        return chunks
+    return [s.strip() for s in sent_tokenize(note) if s.strip()]
 
 def _parseIndexList(value: str):
     try:
