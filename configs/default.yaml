@@ -32,11 +32,11 @@ matcher:
     # baseModel: microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract
     # baseModel: pritamdeka/PubMedBERT-MNLI-MedNLI
     baseModel: MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli
-    rank: 8
-    alpha: 16
+    rank: 16
+    alpha: 32
     dropout: 0.05
-    epochs: 3
-    learningRate: 0.00005
+    epochs: 8
+    learningRate: 0.0002
     maxLength: 512
 
 # ---- ranking (Stage F) -- read by rank.aggregate() ----
