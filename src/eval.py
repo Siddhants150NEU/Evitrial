@@ -16,6 +16,11 @@ from . import ingest
 import bm25s, torch
 from transformers import AutoTokenizer, AutoModel
 from qdrant_client import QdrantClient
+from . import pipeline
+
+import platform
+import statistics
+import time
 
 from . import verify as verifyModule
 
@@ -414,11 +419,87 @@ def abstentionMetrics(config: dict) -> dict:
         }
     return results
 
-def calibration(config: dict) -> dict:
-    raise NotImplementedError
+def _reliability(answered: list[tuple[float, int]], nBins: int = 10) -> dict:
+    n = len(answered)
+    if not n:
+        return {"ece": 0.0, "brier": 0.0, "n": 0, "bins": []}
 
-def latency(config: dict) -> dict:
-    raise NotImplementedError
+    edges = [i / nBins for i in range(nBins + 1)]
+    bins, ece = [], 0.0
+    for lo, hi in zip(edges, edges[1:]):
+        # the top bin owns 1.0 too, else a perfectly confident call falls off the end
+        inBin = [(c, ok) for c, ok in answered if lo <= c < hi or (hi == 1.0 and c == 1.0)]
+        if not inBin:
+            bins.append({"lo": lo, "hi": hi, "n": 0, "meanConfidence": None, "accuracy": None})
+            continue
+        meanConfidence = sum(c for c, _ in inBin) / len(inBin)
+        accuracy = sum(ok for _, ok in inBin) / len(inBin)
+        ece += (len(inBin) / n) * abs(accuracy - meanConfidence)
+        bins.append({
+            "lo": lo, "hi": hi, "n": len(inBin),
+            "meanConfidence": round(meanConfidence, 4),
+            "accuracy": round(accuracy, 4),
+        })
+
+    brier = sum((c - ok) ** 2 for c, ok in answered) / n
+    return {"ece": round(ece, 4), "brier": round(brier, 4), "n": n, "bins": bins}
+
+def calibration(config: dict, split: str = "val") -> dict:
+    rows = ingest.loadAnnotations()
+    pairs = ingest.toEvalPairs(rows)
+    targetPairs = ingest.splitPairs(pairs, config)[split]
+    results = {}
+    for a in ["rules", "zeroShot", "lora"]:
+        configRun = {**config, "matcher": {**config["matcher"], "rung": a}}
+        answered = []
+        try:
+            for pair in targetPairs:
+                criterion = Criterion(
+                    criterionId=pair.criterionId,
+                    nctId = pair.nctId,
+                    text = pair.criterionText,
+                    criterionType= pair.criterionType,
+                )
+                decision = match.match(pair.note, criterion, configRun)
+                verified = verifyModule.verify(decision, pair.note, pair.criterionText)
+                if verified.label == "UNKNOWN":
+                    continue
+                answered.append((verified.confidence, int(verified.label == pair.label)))
+        except Exception as exc:
+            results[a] = {"status": "error", "error": str(exc)}
+        results[a] = _reliability(answered)
+    
+    return results
+
+def latency(config: dict, nQueries: int = 3) -> dict:
+    notes = [note for _, note in list(ingest.loadTopics())[: nQueries + 1]]
+
+    start = time.perf_counter()
+    pipeline.runPatient(notes[0], config)
+    warmupMs = (time.perf_counter() - start) * 1000
+
+    timings = []
+    for note in notes[1:]:
+        start = time.perf_counter()
+        pipeline.runPatient(note, config)
+        timings.append((time.perf_counter() - start) * 1000)
+
+    timings.sort()
+    return {
+        "n": len(timings),
+        "rung": config["matcher"]["rung"],
+        "p50Ms": round(statistics.median(timings), 1),
+        "p95Ms": round(timings[min(int(0.95 * len(timings)), len(timings) - 1)], 1),
+        "meanMs": round(statistics.fmean(timings), 1),
+        "warmupMs": round(warmupMs, 1),
+        "hardware": {
+            "platform": platform.platform(),
+            "processor": platform.processor(),
+            "cpuCount": os.cpu_count(),
+            "torch": torch.__version__,
+            "device": "cuda" if torch.cuda.is_available() else "cpu",
+        },
+    }
 
 if __name__ == "__main__":
     cfg = loadConfig()
