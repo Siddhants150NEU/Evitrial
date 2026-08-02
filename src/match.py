@@ -130,7 +130,8 @@ def zeroShotMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     global _ZeroShotModel
     if _ZeroShotModel is None:
         # model_name = "pritamdeka/PubMedBERT-MNLI-MedNLI" #config["matcher"]["nliModel"]
-        model_name = "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
+        # model_name = "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
+        model_name = config["matcher"]["nliModel"]
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForSequenceClassification.from_pretrained(model_name)
         _ZeroShotModel = (tokenizer, model)
@@ -155,30 +156,66 @@ def zeroShotMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     bestLabel = "UNKNOWN"
     bestConfidence = 0.0
     
-    for sentence in sentences:
-        pairs = [[sentence, criterion.text]]
-        with torch.no_grad():
-            encoded = tokenizer(pairs, truncation=True, padding=True, return_tensors="pt", max_length=512)
-            # logits = model(**encoded).logits.squeeze(dim=1)
-            logits = model(**encoded).logits
-            probs = torch.softmax(logits, dim=-1)[0]
+    # for sentence in sentences:
+    #     pairs = [[sentence, criterion.text] for sentence in sentences]
+    #     with torch.no_grad():
+    #         encoded = tokenizer(pairs, truncation=True, padding=True, return_tensors="pt", max_length=512)
+    #         # logits = model(**encoded).logits.squeeze(dim=1)
+    #         # logits = model(**encoded).logits
+    #         # probs = torch.softmax(logits, dim=-1)[0]
+    #         probs = torch.softmax(model(**encoded).logits, dim=-1)
             
-            max_prob, max_idx = torch.max(probs, dim=-1)
-            predictedIdx = max_idx.item()
-            confidenceVal = max_prob.item()
-            rawLabel = id2label.get(predictedIdx, "").upper()
+    #         # max_prob, max_idx = torch.max(probs, dim=-1)
+    #         maxProbs, maxIdxs = torch.max(probs, dim=-1)
+    #         # predictedIdx = max_idx.item()
+    #         # confidenceVal = max_prob.item()
+    #         # rawLabel = id2label.get(predictedIdx, "").upper()
             
-            if "ENTAIL" in rawLabel:
-                currentLabel = "MET"
-            elif "CONTRADICT" in rawLabel:
-                currentLabel = "NOT_MET"
-            else:
-                currentLabel = "UNKNOWN"
+    #         # if "ENTAIL" in rawLabel:
+    #         #     currentLabel = "MET"
+    #         # elif "CONTRADICT" in rawLabel:
+    #         #     currentLabel = "NOT_MET"
+    #         # else:
+    #         #     currentLabel = "UNKNOWN"
             
-            if currentLabel != "UNKNOWN" and confidenceVal > bestConfidence:
-                bestConfidence = confidenceVal
-                bestLabel = currentLabel
-                bestSentence = sentence.strip()
+    #         # if currentLabel != "UNKNOWN" and confidenceVal > bestConfidence:
+    #         #     bestConfidence = confidenceVal
+    #         #     bestLabel = currentLabel
+    #         #     bestSentence = sentence.strip()
+    #         for sentence, confidenceVal, predictedIdx in zip(sentences, maxProbs.tolist(), maxIdxs.tolist()):
+    #             rawLabel = id2label.get(predictedIdx, "").upper()
+    #             if "ENTAIL" in rawLabel:
+    #                 currentLabel = "MET"
+    #             elif "CONTRADICT" in rawLabel:
+    #                 currentLabel = "NOT_MET"
+    #             else:
+    #                 currentLabel = "UNKNOWN"
+
+    #             if currentLabel != "UNKNOWN" and confidenceVal > bestConfidence:
+    #                 bestConfidence = confidenceVal
+    #                 bestLabel = currentLabel
+    #                 bestSentence = sentence.strip()
+    
+    pairs = [[sentence, criterion.text] for sentence in sentences]
+    with torch.no_grad():
+        encoded = tokenizer(pairs, truncation=True, padding=True, return_tensors="pt", max_length=512)
+        probs = torch.softmax(model(**encoded).logits, dim=-1)
+
+    maxProbs, maxIdxs = torch.max(probs, dim=-1)
+    for sentence, confidenceVal, predictedIdx in zip(sentences, maxProbs.tolist(), maxIdxs.tolist()):
+        rawLabel = id2label.get(predictedIdx, "").upper()
+        if "ENTAIL" in rawLabel:
+            currentLabel = "MET"
+        elif "CONTRADICT" in rawLabel:
+            currentLabel = "NOT_MET"
+        else:
+            currentLabel = "UNKNOWN"
+
+        if currentLabel != "UNKNOWN" and confidenceVal > bestConfidence:
+            bestConfidence = confidenceVal
+            bestLabel = currentLabel
+            bestSentence = sentence.strip()
+
     
     return Decision(
         label=bestLabel,
@@ -230,26 +267,46 @@ def loraMatch(note: str, criterion: Criterion, config: dict) -> Decision:
         
     bestSentence, bestLabel, bestConfidence = None, "UNKNOWN", 0.0
     
-    for s in sentences:
-        encoded = tokenizer(
-            s,
-            criterion.text,
-            truncation = True,
-            padding = True,
-            return_tensors = "pt",
-            max_length = config["matcher"]["lora"]["maxLength"]
-        )
-        with torch.no_grad():
-            logits = model(**encoded).logits
-        probs = torch.softmax(logits, dim = -1)[0]
-        maxProb, maxIdx = torch.max(probs, dim=-1)
-        # currentLabel = _ID2LABEL[maxIdx.item()]
-        currentLabel = idToLabel[maxIdx.item()]
+    # for s in sentences:
+    #     encoded = tokenizer(
+    #         s,
+    #         criterion.text,
+    #         truncation = True,
+    #         padding = True,
+    #         return_tensors = "pt",
+    #         max_length = config["matcher"]["lora"]["maxLength"]
+    #     )
+    #     with torch.no_grad():
+    #         logits = model(**encoded).logits
+    #     probs = torch.softmax(logits, dim = -1)[0]
+    #     maxProb, maxIdx = torch.max(probs, dim=-1)
+    #     # currentLabel = _ID2LABEL[maxIdx.item()]
+    #     currentLabel = idToLabel[maxIdx.item()]
         
-        if currentLabel!="UNKNOWN" and maxProb.item() > bestConfidence:
-            bestConfidence = maxProb.item()
+    #     if currentLabel!="UNKNOWN" and maxProb.item() > bestConfidence:
+    #         bestConfidence = maxProb.item()
+    #         bestLabel = currentLabel
+    #         bestSentence = s.strip()
+    
+    pairs = [[s, criterion.text] for s in sentences]
+    with torch.no_grad():
+        encoded = tokenizer(
+            pairs,
+            truncation=True,
+            padding=True,
+            return_tensors="pt",
+            max_length=config["matcher"]["lora"]["maxLength"],
+        )
+        probs = torch.softmax(model(**encoded).logits, dim=-1)
+
+    maxProbs, maxIdxs = torch.max(probs, dim=-1)
+    for s, prob, idx in zip(sentences, maxProbs.tolist(), maxIdxs.tolist()):
+        currentLabel = idToLabel[idx]
+        if currentLabel != "UNKNOWN" and prob > bestConfidence:
+            bestConfidence = prob
             bestLabel = currentLabel
             bestSentence = s.strip()
+
             
     return Decision(
         label = bestLabel,

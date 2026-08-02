@@ -67,15 +67,23 @@ def runEval(config: dict) -> str:
         "utc": _dt.datetime.now(_dt.timezone.utc).isoformat(),
     })
 
-    metrics = {
-        "retrieval": _safe(retrievalMetrics, config),
-        "criterion": _safe(criterionMetrics, config),
-        "faithfulness": _safe(faithfulnessMetrics, config),
-        "abstention": _safe(abstentionMetrics, config),
-        "calibration": _safe(calibration, config),
-        "efficiency": _safe(latency, config),
-    }
-    _dump(runDir, "metrics.json", metrics)
+    # metrics = {
+    #     "retrieval": _safe(retrievalMetrics, config),
+    #     "criterion": _safe(criterionMetrics, config),
+    #     "faithfulness": _safe(faithfulnessMetrics, config),
+    #     "abstention": _safe(abstentionMetrics, config),
+    #     "calibration": _safe(calibration, config),
+    #     "efficiency": _safe(latency, config),
+    # }
+    # _dump(runDir, "metrics.json", metrics)
+    metrics = {}
+    for name, fn in [
+        ("retrieval", retrievalMetrics), ("criterion", criterionMetrics),
+        ("faithfulness", faithfulnessMetrics), ("abstention", abstentionMetrics),
+        ("calibration", calibration), ("efficiency", latency),
+    ]:
+        metrics[name] = _safe(fn, config)
+        _dump(runDir, "metrics.json", metrics)
 
     print(f"wrote {runDir}")
     for name, value in metrics.items():
@@ -312,10 +320,10 @@ def criterionMetrics(config: dict, split:str = "val") -> dict:
 #         }
 #         return results
 
-def faithfulnessMetrics(config: dict) -> dict:
+def faithfulnessMetrics(config: dict, split:str = "val") -> dict:
     rows = ingest.loadAnnotations()
     pairs = ingest.toEvalPairs(rows)
-    valPairs = ingest.splitPairs(pairs, config)["val"]
+    valPairs = ingest.splitPairs(pairs, config)[split]
     results = {}
     for rung in ["rules", "zeroShot", "lora"]:
         rungConfig = {**config, "matcher": {**config["matcher"], "rung": rung}}
@@ -362,10 +370,10 @@ def faithfulnessMetrics(config: dict) -> dict:
         }
     return results
 
-def abstentionMetrics(config: dict) -> dict:
+def abstentionMetrics(config: dict, split:str = "val") -> dict:
     rows = ingest.loadAnnotations()
     pairs = ingest.toEvalPairs(rows)
-    valPairs = ingest.splitPairs(pairs, config)["val"]
+    valPairs = ingest.splitPairs(pairs, config)[split]
 
     results = {}
     for rung in ["rules", "zeroShot", "lora"]:
@@ -467,6 +475,7 @@ def calibration(config: dict, split: str = "val") -> dict:
                 answered.append((verified.confidence, int(verified.label == pair.label)))
         except Exception as exc:
             results[a] = {"status": "error", "error": str(exc)}
+            continue
         results[a] = _reliability(answered)
     
     return results

@@ -26,7 +26,7 @@ def retrieve(note: str, config: dict, k: int) -> list[Candidate]:
         fusedRet = rerank(note, fusedRet, config)
     logger.info(f"fusedRet: {fusedRet}")
     logger.info("--end of retrieval--")
-    return fusedRet
+    return fusedRet[:k]
     
 
 def bm25Search(note: str, config: dict, topN: int) -> list[Candidate]:
@@ -185,7 +185,12 @@ def rerank(note: str, candidates: list[Candidate], config: dict) -> list[Candida
     return sorted(candidates, key=lambda c: c.retrieverBreakdown["rerank"], reverse=True)
 
 def fetchTrials(nctIds: list[str], config: dict) -> dict[str, Trial]:
+    global _BM25
     wanted = set(nctIds)
-    logger.info("---Fetch Trials---")
-    logger.info(f"{wanted}")
-    return {t.nctId: t for t in ingest.loadTrials() if t.nctId in wanted}
+    # logger.info("---Fetch Trials---")
+    # logger.info(f"{wanted}")
+    # return {t.nctId: t for t in ingest.loadTrials() if t.nctId in wanted}
+    if _BM25 is None:
+        bm25Search("warmup", config, 1)
+    trials, _ = _BM25
+    return {t.nctId: t for t in trials if t.nctId in wanted}
