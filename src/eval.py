@@ -17,6 +17,8 @@ import bm25s, torch
 from transformers import AutoTokenizer, AutoModel
 from qdrant_client import QdrantClient
 from . import pipeline
+from dataclasses import replace
+from .schemas import Criterion, Decision
 
 import platform
 import statistics
@@ -80,7 +82,7 @@ def runEval(config: dict) -> str:
     for name, fn in [
         ("retrieval", retrievalMetrics), ("criterion", criterionMetrics),
         ("faithfulness", faithfulnessMetrics), ("abstention", abstentionMetrics),
-        ("calibration", calibration), ("efficiency", latency),
+        ("calibration", calibration), ("efficiency", latency), ("gateCalibration", gateCalibration),
     ]:
         metrics[name] = _safe(fn, config)
         _dump(runDir, "metrics.json", metrics)
@@ -509,6 +511,66 @@ def latency(config: dict, nQueries: int = 3) -> dict:
             "device": "cuda" if torch.cuda.is_available() else "cpu",
         },
     }
+    
+def gateCalibration(config: dict, split: str = "val") -> dict:
+    rows = ingest.loadAnnotations()
+    pairs = ingest.toEvalPairs(rows)
+    valPairs = ingest.splitPairs(pairs, config)[split]
+    # dictCriterion = {}
+    # for i in valPairs:
+    #     dictCriterion[i.criterionId] = rows[i.criterionId]
+    # results = {}
+    rowByID = {str(r["annotationId"]): r for r in rows}
+    checked = 0
+    rejected = 0
+    multiSentence = 0
+    singleSentence = 0
+    recoverable = 0
+    OORange = 0
+    for p in valPairs:
+        if p.label == "UNKNOWN" or not p.patientSpan:
+            continue
+        checked += 1
+        goldDecision = Decision(
+            label = p.label,
+            confidence=1.0,
+            trialSpan = p.criterionText,
+            patientSpan = p.patientSpan,
+            criterionId = p.criterionId,
+            criterionType = p.criterionType
+        )
+        if verifyModule.isSupported(goldDecision, p.note, p.criterionText):
+            continue
+        rejected += 1
+        indices = rowByID[p.criterionId]["expertSentences"]
+        if len(indices)>1:
+            multiSentence +=1
+        else:
+            singleSentence +=1
+        sentences = ingest.splitNumberedNote(p.note)
+        allPass = True
+        for i in indices:
+            if not 0 <= i < len(sentences):
+                OORange += 1          
+                allPass = False
+                continue
+            perSentence = replace(goldDecision, patientSpan=sentences[i])
+            if not verifyModule.isSupported(perSentence, p.note, p.criterionText):
+                allPass = False
+        if allPass:
+            recoverable += 1
+
+    return {
+        "split": split or "all",
+        "checked": checked,
+        "rejected": rejected,
+        "rejectedRate": round(rejected / checked, 4) if checked else 0.0,
+        "rejectedMultiSentence": multiSentence,
+        "rejectedSingleSentence": singleSentence,
+        "recoverableByPerSentenceCheck": recoverable,
+        "indexOutOfRange": OORange,
+    }
+    
 
 if __name__ == "__main__":
     cfg = loadConfig()
