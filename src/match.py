@@ -7,6 +7,7 @@ from .schemas import Criterion, Decision
 from transformers import AutoTokenizer, AutoModelForTokenClassification, AutoModelForSequenceClassification
 from transformers import pipeline
 import torch
+from . import llmContract, llmProvider
 from peft import PeftModel
 from . import ingest
 
@@ -29,9 +30,10 @@ def match(note: str, criterion: Criterion, config: dict) -> Decision:
         return ruleMatch(note, criterion=criterion, config=config)
     elif config["matcher"]["rung"] == "zeroShot":
         return zeroShotMatch(note, criterion, config)
+    elif config["matcher"]["rung"] == "generative":
+        return generativeMatch(note, criterion, config)
     else:
         return loraMatch(note, criterion, config)
-    raise NotImplementedError("dispatch on config['matcher']['rung'] to the rungs below")
 
 def ruleMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     stop_words = set(stopwords.words('english'))
@@ -320,3 +322,26 @@ def loraMatch(note: str, criterion: Criterion, config: dict) -> Decision:
             
         
     raise NotImplementedError("implement the LoRA-fine-tuned matcher")
+
+def generativeMatch(note: str, criterion: Criterion, config: dict) -> Decision:
+    sentences = ingest.splitNumberedNote(note)
+    if not sentences:
+        return Decision("UNKNOWN", 0.0, criterion.text, None,
+                    criterion.criterionId, criterion.criterionType, failures)
+    prompt = llmContract.buildPrompt(criterion.criterionId, criterion.text, sentences)
+    raw, meta = llmProvider.callModel(prompt, config)
+    verdict, failures = llmContract.parseVerdict(raw)
+    if verdict is None:
+        return Decision("UNKNOWN", 0.0, criterion.text, None,
+            criterion.criterionId, criterion.criterionType, False, failures)
+    failures = llmContract.checkVerdict(verdict, criterion.criterionId, sentences)
+    if failures:
+        return Decision("UNKNOWN", 0.0, criterion.text, None, criterion.criterionId,
+                criterion.criterionType, False, failures)
+
+        
+    # patientSpan = sentences[verdict.sentenceIndices[0]]
+    patientSpan = sentences[verdict.sentenceIndices[0]] if verdict.sentenceIndices else None
+    return Decision(verdict.label, verdict.confidence, criterion.text,
+                patientSpan, criterion.criterionId, criterion.criterionType, False, failures)
+    

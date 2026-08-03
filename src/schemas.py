@@ -53,6 +53,7 @@ class Decision:
     criterionId: str | None = None
     criterionType: str | None = None
     verified: bool = False
+    failures: list[str] = field(default_factory=list)
 
 @dataclass
 class TrialScore:

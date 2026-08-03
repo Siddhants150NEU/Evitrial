@@ -18,6 +18,7 @@ from transformers import AutoTokenizer, AutoModel
 from qdrant_client import QdrantClient
 from . import pipeline
 from dataclasses import replace
+from collections import Counter
 from .schemas import Criterion, Decision
 
 import platform
@@ -233,7 +234,7 @@ def criterionMetrics(config: dict, split:str = "val") -> dict:
     labels = ["MET", "NOT_MET", "UNKNOWN"]
 
     results = {} 
-    for rung in ["rules", "zeroShot", "lora"]:
+    for rung in ["rules", "zeroShot", "lora", "generative"]:
         rungConfig = {**config, "matcher": {**config["matcher"], "rung": rung}}
         yTrue, yPred = [], []
         try:
@@ -327,12 +328,16 @@ def faithfulnessMetrics(config: dict, split:str = "val") -> dict:
     pairs = ingest.toEvalPairs(rows)
     valPairs = ingest.splitPairs(pairs, config)[split]
     results = {}
-    for rung in ["rules", "zeroShot", "lora"]:
+
+    for rung in ["rules", "zeroShot", "lora", "generative"]:
         rungConfig = {**config, "matcher": {**config["matcher"], "rung": rung}}
         attempted = 0
         offSupported = 0
         shipped = 0
         onSupported = 0
+        counts = Counter()
+        modelAbstained = 0
+        overreach = 0
         try:
             for p in valPairs:
                 criterion = Criterion(
@@ -346,6 +351,11 @@ def faithfulnessMetrics(config: dict, split:str = "val") -> dict:
                     criterion,
                     rungConfig
                 )
+                counts.update(decision.failures)
+                if decision.label == "UNKNOWN":
+                    if not decision.failures:
+                        modelAbstained += 1       
+                    continue
                 if decision.label == "UNKNOWN":
                     continue
                 attempted += 1
@@ -353,6 +363,8 @@ def faithfulnessMetrics(config: dict, split:str = "val") -> dict:
                     offSupported += 1
                 verified = verifyModule.verify(decision, p.note, p.criterionText)
                 if verified.label != "UNKNOWN":
+                    if p.label == "UNKNOWN":
+                        overreach += 1
                     shipped += 1
                     if verifyModule.isSupported(verified, p.note, p.criterionText):
                         onSupported += 1
@@ -368,7 +380,10 @@ def faithfulnessMetrics(config: dict, split:str = "val") -> dict:
             "baselineFaithfulness": baselineFaith,
             "faithfulness": faithfulness,
             "delta": round(faithfulness - baselineFaith, 4),
-            "forcedAbstentions": attempted-shipped
+            "forcedAbstentions": attempted-shipped,
+            "modelAbstained": modelAbstained,
+            "overreach": overreach,
+            "failureCounts": dict(sorted(counts.items())),
         }
     return results
 
@@ -378,7 +393,7 @@ def abstentionMetrics(config: dict, split:str = "val") -> dict:
     valPairs = ingest.splitPairs(pairs, config)[split]
 
     results = {}
-    for rung in ["rules", "zeroShot", "lora"]:
+    for rung in ["rules", "zeroShot", "lora", "generative"]:
         rungConfig = {**config, "matcher": {**config["matcher"], "rung": rung}}
         records = []
 
@@ -459,7 +474,7 @@ def calibration(config: dict, split: str = "val") -> dict:
     pairs = ingest.toEvalPairs(rows)
     targetPairs = ingest.splitPairs(pairs, config)[split]
     results = {}
-    for a in ["rules", "zeroShot", "lora"]:
+    for a in ["rules", "zeroShot", "lora", "generative"]:
         configRun = {**config, "matcher": {**config["matcher"], "rung": a}}
         answered = []
         try:
