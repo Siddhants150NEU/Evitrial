@@ -17,6 +17,19 @@ data/annotations/*
 
 # --- run outputs (regenerable, never commit) ---
 reports/runs/
+# figures are derived from runs/ — shipping them without their source runs is
+# incoherent, and it's 3.9 MB of PNG/SVG that the notebook rebuilds on demand
+reports/figures/
+
+# --- local analysis notebooks ---
+# 1.5 MB of embedded output images + execution counts; regenerable from runs/.
+# Delete this line if you want the notebook published (clear outputs first:
+# pip install nbstripout && nbstripout --install)
+notebooks/
+
+# --- generated presentation exports (rebuilt from the generator, not source) ---
+EVI_TRIAL_deck.pptx
+EVI_TRIAL_deck.pdf
 
 # --- Python / build artifacts ---
 __pycache__/
@@ -49,3 +62,10 @@ env/
 # --- OS / editor cruft ---
 .DS_Store
 Thumbs.db
+.webapp.pid
+.webapp.log
+
+# --- agent / editor local state ---
+# (already covered by the global ~/.config/git/ignore on this machine; repeated
+# here so a fresh clone on another machine doesn't leak it)
+.claude/settings.local.json

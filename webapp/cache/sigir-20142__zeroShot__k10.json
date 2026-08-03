@@ -1,0 +1,5791 @@
+{
+ "note": "0. An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.\n1. He has just returned from a 5 day vacation in Colorado.\n2. Parents report that prior to the onset of fever and cough, he had loose stools.\n3. He denies upper respiratory tract symptoms.\n4. On examination he is in respiratory distress and has bronchial respiratory sounds on the left.\n5. A chest x-ray shows bilateral lung infiltrates.\n6. The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+ "sentences": [
+  "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+  "He has just returned from a 5 day vacation in Colorado.",
+  "Parents report that prior to the onset of fever and cough, he had loose stools.",
+  "He denies upper respiratory tract symptoms.",
+  "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+  "A chest x-ray shows bilateral lung infiltrates.",
+  "The patient will provide informed consent, and will comply with the trial protocol without any practical issues."
+ ],
+ "rung": "zeroShot",
+ "k": 10,
+ "config": {
+  "retrieval": {
+   "k": 20,
+   "topN": 100,
+   "alpha": 0.5,
+   "useRerank": true,
+   "queryEncoder": "ncbi/MedCPT-Query-Encoder",
+   "articleEncoder": "ncbi/MedCPT-Article-Encoder",
+   "crossEncoder": "ncbi/MedCPT-Cross-Encoder",
+   "vectorDim": 768,
+   "batchSize": 64,
+   "qdrant": {
+    "location": "data/qdrant",
+    "collection": "trials2021"
+   }
+  },
+  "rank": {
+   "retrievalPrior": 1.0,
+   "inclusionMet": 1.0,
+   "inclusionFailed": 1.0,
+   "exclusionHit": 5.0
+  },
+  "matcher": {
+   "rung": "zeroShot"
+  }
+ },
+ "stages": [
+  {
+   "id": "ingest",
+   "fn": "ingest.splitNumberedNote",
+   "ms": 0,
+   "in": {
+    "note": "0. An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.\n1. He has just returned from a 5 day vacation in Colorado.\n2. Parents report that prior to the onset of fever and cough, he had loose stools.\n3. He denies upper respiratory tract symptoms.\n4. On examination he is in respiratory distress and has bronchial respiratory sounds on the left.\n5. A chest x-ray shows bilateral lung infiltrates.\n6. The patient will provide informed consent, and will comply with the trial protocol without any practical issues."
+   },
+   "out": {
+    "sentences": [
+     "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+     "He has just returned from a 5 day vacation in Colorado.",
+     "Parents report that prior to the onset of fever and cough, he had loose stools.",
+     "He denies upper respiratory tract symptoms.",
+     "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+     "A chest x-ray shows bilateral lung infiltrates.",
+     "The patient will provide informed consent, and will comply with the trial protocol without any practical issues."
+    ],
+    "count": 7
+   }
+  },
+  {
+   "id": "retrieve",
+   "fn": "retrieval.retrieve + fetchTrials",
+   "ms": 124782,
+   "in": {
+    "k": 10,
+    "topN": 100,
+    "alpha": 0.5,
+    "useRerank": true,
+    "corpus": 375580
+   },
+   "out": {
+    "candidates": [
+     {
+      "nctId": "NCT00992966",
+      "score": 0.013428249317563354,
+      "retrieverBreakdown": {
+       "hybrid": 0.013428249317563354,
+       "rerank": -1.5502313375473022
+      },
+      "rank": 1,
+      "title": "Vibration Response Imaging (VRI) in Children With Acute Respiratory Symptoms",
+      "condition": "",
+      "summary": "\n    \n      The VRI device may provide a complementary diagnostic tool for lung examination and aid the\r\n      physician in determining whether a chest x-ray should be performed.\r\n    \n  ",
+      "fetched": true
+     },
+     {
+      "nctId": "NCT04394026",
+      "score": 0.35041594367520157,
+      "retrieverBreakdown": {
+       "hybrid": 0.35041594367520157,
+       "rerank": -2.3592653274536133
+      },
+      "rank": 2,
+      "title": "Imaging Feature of SARS-CoV2 Infection",
+      "condition": "",
+      "summary": "\n    \n      The novel coronavirus SARS-CoV2 clinically presents with pneumonia, characterised by fever,\r\n      cough, dyspnea. The severity of the disease varies widely with evidence of mild disease in\r\n      the majority of confirmed cases, severe pneumonia-dyspnea, hypoxia or lung involvement at\r\n      imaging within 24-48 hours- and critical disease with respiratory failure, shock or\r\n      mul",
+      "fetched": true
+     },
+     {
+      "nctId": "NCT04481360",
+      "score": 0.32211381630048674,
+      "retrieverBreakdown": {
+       "hybrid": 0.32211381630048674,
+       "rerank": -4.547192573547363
+      },
+      "rank": 3,
+      "title": "Evaluation of Clinical Characteristics and Outcome of COVID19 Pneumonia in Assiut University Hospital",
+      "condition": "",
+      "summary": "\n    \n      -  Evaluation of the clinical presentation of COVID 19 pneumonia.\r\n\r\n        -  Identification the risk factors of severing COVID 19 pneumonia.\r\n\r\n        -  Evaluation of the outcome of the disease.\r\n    \n  ",
+      "fetched": true
+     },
+     {
+      "nctId": "NCT01102322",
+      "score": 0.06239155128023946,
+      "retrieverBreakdown": {
+       "hybrid": 0.06239155128023946,
+       "rerank": -4.763212203979492
+      },
+      "rank": 4,
+      "title": "Factors Associated With the Use of Lung Protective Ventilation Strategy (LPV) in Acute Lung Injury/Acute Respiratory Distress Syndrome (ALI/ARDS) Patients in Intensive Care Unit (ICU)",
+      "condition": "",
+      "summary": "\n    \n      In 1967, Ashbaugh et al first described 12 patients with a syndrome characterized by the\r\n      acute onset dyspnea, severe hypoxemia, diffuse lung infiltrates on the chest radiography and\r\n      decreased lung compliance. Moreover, in 1988, Murray et al proposed a lung injury scoring\r\n      system based on the level of positive end-expiratory pressure (PEEP), PaO2-to-FiO2 ratio,\r\n    ",
+      "fetched": true
+     },
+     {
+      "nctId": "NCT00711399",
+      "score": 0.006266781991110525,
+      "retrieverBreakdown": {
+       "hybrid": 0.006266781991110525,
+       "rerank": -6.555073261260986
+      },
+      "rank": 5,
+      "title": "Assessment of Cough and Wheeze With Breath Sound Documenting Device",
+      "condition": "",
+      "summary": "\n    \n      The study goal is to create a database of respiratory sounds recordings, to evaluate and\r\n      validate the WIM technology and to evaluate the efficacy of a specific treatment by comparing\r\n      the severity of the respiratory symptoms before and after the administration of the\r\n      treatment.\r\n    \n  ",
+      "fetched": true
+     },
+     {
+      "nctId": "NCT03299322",
+      "score": 0.16477989359407424,
+      "retrieverBreakdown": {
+       "hybrid": 0.16477989359407424,
+       "rerank": -7.243416786193848
+      },
+      "rank": 6,
+      "title": "A Study to Assess Jia Wei Yang He Formula as a Plus Therapy in the Treatment of Persistent Asthma",
+      "condition": "",
+      "summary": "\n    \n      Investigators aimed to assess Jia Wei Yang He Formula as a plus therapy in the treatment of\r\n      persistent asthma and to explore Airway Microbiome variation of Asthma by Traditional Chinese\r\n      Medicine treatment\r\n    \n  ",
+      "fetched": true
+     },
+     {
+      "nctId": "NCT04438239",
+      "score": 0.0,
+      "retrieverBreakdown": {
+       "hybrid": 0.0,
+       "rerank": -7.958393573760986
+      },
+      "rank": 7,
+      "title": "Rehabilitation Needs After COVID-19 Hospital Treatment",
+      "condition": "",
+      "summary": "\n    \n      The onset of Coronavirus Disease 2019 (COVID-19) in the first months of 2020 had a huge\r\n      impact on Italian population and Healthcare System, with more than 150.000 total confirmed\r\n      cases1. SARS-CoV-2 is a highly contagious new virus, causing an influenza like illness and\r\n      respiratory tract infection demonstrating fever (89%), cough (68%), fatigue (38%), sputum\r\n      ",
+      "fetched": true
+     },
+     {
+      "nctId": "NCT00367627",
+      "score": 0.08047386445623426,
+      "retrieverBreakdown": {
+       "hybrid": 0.08047386445623426,
+       "rerank": -8.45624828338623
+      },
+      "rank": 8,
+      "title": "Relative Efficacy of Two Regimens of Ante-helminthic Treatment",
+      "condition": "",
+      "summary": "\n    \n      The most common soil transmitted helminthic infections(STHI) includes infection with Ascaris\r\n      lumbricoides, Trichuris trichiura, and Hookworm. Growth retardation, malnutrition, anemia,\r\n      impaired cognitive function and immunosuppression are main manifestations in children. Even\r\n      within the developing world, wide differences exist in prevalence rates. The poorest\r\n     ",
+      "fetched": true
+     },
+     {
+      "nctId": "NCT02881814",
+      "score": 0.053886196450373125,
+      "retrieverBreakdown": {
+       "hybrid": 0.053886196450373125,
+       "rerank": -8.477596282958984
+      },
+      "rank": 9,
+      "title": "UltraSound for Accurate Decisions in Chest PhysioTherapy",
+      "condition": "",
+      "summary": "\n    \n      Introduction: Physiotherapist usually uses a clinical examination, including auscultation, an\r\n      analysis of blood gasses and chest imaging to determine the indication for chest\r\n      physiotherapy, to choose the treatment protocol and evaluate the efficacy of the management.\r\n      Lung ultrasound (LUS) presents greater accuracy than chest X-ray in the diagnosis of lung\r\n      de",
+      "fetched": true
+     },
+     {
+      "nctId": "NCT04225650",
+      "score": 0.5,
+      "retrieverBreakdown": {
+       "hybrid": 0.5,
+       "rerank": -10.1256103515625
+      },
+      "rank": 10,
+      "title": "Prevalence of Respiratory Impairment During IBD",
+      "condition": "",
+      "summary": "\n    \n      Patients will be recruited during a routine consultation with a physician in the\r\n      hepato-gastroenterology department.\r\n\r\n      At the end of the consultation, patients will have to complete the following questionnaire:\r\n      \"European Community Respiratory Health Survey\" which allows the screening of patients at risk\r\n      of chronic respiratory diseases (asthma, COPD, bronchie",
+      "fetched": true
+     }
+    ],
+    "returned": 10,
+    "fetched": 10
+   }
+  },
+  {
+   "id": "parse",
+   "fn": "parse.parseCriteria",
+   "ms": 2,
+   "in": {
+    "trials": 10
+   },
+   "out": {
+    "perTrial": [
+     {
+      "nctId": "NCT00992966",
+      "title": "Vibration Response Imaging (VRI) in Children With Acute Respiratory Symptoms",
+      "criteria": [
+       {
+        "criterionId": "NCT00992966::inc::0",
+        "nctId": "NCT00992966",
+        "text": "Subject's parent",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::inc::1",
+        "nctId": "NCT00992966",
+        "text": "legal guardian, is able",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::inc::2",
+        "nctId": "NCT00992966",
+        "text": "willing to read the Informed Consent, understands the Informed Consent",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::inc::3",
+        "nctId": "NCT00992966",
+        "text": "provides written Informed Consent for the subject; if the minor child is in fact able to give consent, the minor's consent must be obtained in addition to the consent of the minor's legal guardian",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::inc::4",
+        "nctId": "NCT00992966",
+        "text": "Boy",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::inc::5",
+        "nctId": "NCT00992966",
+        "text": "girl in the age range of 3-18 years",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": "18 years"
+       },
+       {
+        "criterionId": "NCT00992966::inc::6",
+        "nctId": "NCT00992966",
+        "text": "Patient presented with acute respiratory complaints, acute cough, onset of shortness of breath",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::inc::7",
+        "nctId": "NCT00992966",
+        "text": "Patient presented with acute respiratory complaints, acute cough, onset of shortness of fever",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::inc::8",
+        "nctId": "NCT00992966",
+        "text": "Patient referred by ED physician",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::inc::9",
+        "nctId": "NCT00992966",
+        "text": "Patient referred by presented for CXR",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::exc::0",
+        "nctId": "NCT00992966",
+        "text": "Body habitus",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::exc::1",
+        "nctId": "NCT00992966",
+        "text": "skin condition that might prevent the placement of the sound sensors on the back (e.g. severe scoliosis, kyphosis, chest wall deformation, skin lesion on the back",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::exc::2",
+        "nctId": "NCT00992966",
+        "text": "compression fracture)",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::exc::3",
+        "nctId": "NCT00992966",
+        "text": "Potentially contagious skin lesion on the back",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::exc::4",
+        "nctId": "NCT00992966",
+        "text": "Subject has had lung surgery",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::exc::5",
+        "nctId": "NCT00992966",
+        "text": "Subject was prescribed the CXR for monitoring",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00992966::exc::6",
+        "nctId": "NCT00992966",
+        "text": "follow up of a lung condition that pre-existed the current, acute symptoms",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       }
+      ],
+      "ms": 0
+     },
+     {
+      "nctId": "NCT04394026",
+      "title": "Imaging Feature of SARS-CoV2 Infection",
+      "criteria": [
+       {
+        "criterionId": "NCT04394026::inc::0",
+        "nctId": "NCT04394026",
+        "text": "CoViD-19 positive patients (rRT-PCR naso-pharyngeal swab)",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04394026::inc::1",
+        "nctId": "NCT04394026",
+        "text": "Suspicion of SARS-CoV2 on chest X-ray and/or chest CT presentation of disease",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04394026::inc::2",
+        "nctId": "NCT04394026",
+        "text": "Patients of all ages",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04394026::inc::3",
+        "nctId": "NCT04394026",
+        "text": "Subjects at risk (minors, patients in emergency situations, pregnant women, potentially incapable of giving their consent )",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04394026::inc::4",
+        "nctId": "NCT04394026",
+        "text": "Having signed the Informed Consent",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04394026::exc::0",
+        "nctId": "NCT04394026",
+        "text": "Not fulfilling any of the above",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       }
+      ],
+      "ms": 0
+     },
+     {
+      "nctId": "NCT04481360",
+      "title": "Evaluation of Clinical Characteristics and Outcome of COVID19 Pneumonia in Assiut University Hospital",
+      "criteria": [
+       {
+        "criterionId": "NCT04481360::inc::0",
+        "nctId": "NCT04481360",
+        "text": "Patients with COVID 19 PCR positive",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04481360::exc::0",
+        "nctId": "NCT04481360",
+        "text": "Patients less than 18 years of age",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "less than 18 years"
+       }
+      ],
+      "ms": 0
+     },
+     {
+      "nctId": "NCT01102322",
+      "title": "Factors Associated With the Use of Lung Protective Ventilation Strategy (LPV) in Acute Lung Injury/Acute Respiratory Distress Syndrome (ALI/ARDS) Patients in Intensive Care Unit (ICU)",
+      "criteria": [
+       {
+        "criterionId": "NCT01102322::inc::0",
+        "nctId": "NCT01102322",
+        "text": "All intubated",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::inc::1",
+        "nctId": "NCT01102322",
+        "text": "mechanically ventilated patients who meet the criteria of American-European Consensus Conference (AECC) criteria for ALI/ ARDS",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::inc::2",
+        "nctId": "NCT01102322",
+        "text": "Acute onset of illness",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::inc::3",
+        "nctId": "NCT01102322",
+        "text": "Bilateral (patchy, diffuse",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::inc::4",
+        "nctId": "NCT01102322",
+        "text": "homogeneous) infiltrates consistent with pulmonary edema",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::inc::5",
+        "nctId": "NCT01102322",
+        "text": "PaO2/FiO2 <=300 (corrected for altitude): (P/F <300 for ALI",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::inc::6",
+        "nctId": "NCT01102322",
+        "text": "P/F <200 for ARDS) No clinical evidence of left atrial hypertension",
+        "criterionType": "inclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::exc::0",
+        "nctId": "NCT01102322",
+        "text": "Age <18 years",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "18 years"
+       },
+       {
+        "criterionId": "NCT01102322::exc::1",
+        "nctId": "NCT01102322",
+        "text": "Enrolled in other clinical trials",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::exc::2",
+        "nctId": "NCT01102322",
+        "text": "Had confirmed alternative diagnoses that would have different clinical course than ARDS/ALI, e.g., diffuse alveolar hemorrhage, vasculitis, interstitial pneumonitis, Congestive heart failure related pulmonary edema",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::exc::3",
+        "nctId": "NCT01102322",
+        "text": "Acute myocardial infarction",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::exc::4",
+        "nctId": "NCT01102322",
+        "text": "Pregnancy",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::exc::5",
+        "nctId": "NCT01102322",
+        "text": "Patients with definite contraindication to the use of low-tidal volume ventilation, e.g., increased intracranial pressure, tricyclic antidepressant overdose, etc",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT01102322::exc::6",
+        "nctId": "NCT01102322",
+        "text": "The patient who meets inclusion criteria initially but rapidly improved within 24 hours of diagnosis of ARDS/ALI",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "within 24 hours"
+       }
+      ],
+      "ms": 0
+     },
+     {
+      "nctId": "NCT00711399",
+      "title": "Assessment of Cough and Wheeze With Breath Sound Documenting Device",
+      "criteria": [
+       {
+        "criterionId": "NCT00711399::inc::0",
+        "nctId": "NCT00711399",
+        "text": "Patient and/or parents/guardian signed informed consent",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00711399::inc::1",
+        "nctId": "NCT00711399",
+        "text": "Patients with cough",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00711399::inc::2",
+        "nctId": "NCT00711399",
+        "text": "Patients with shortness of breath",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00711399::exc::0",
+        "nctId": "NCT00711399",
+        "text": "Chest tubes",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00711399::exc::1",
+        "nctId": "NCT00711399",
+        "text": "Skin lesions precluding attachment of sensors",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00711399::exc::2",
+        "nctId": "NCT00711399",
+        "text": "Respiratory distress",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00711399::exc::3",
+        "nctId": "NCT00711399",
+        "text": "Pregnant women",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       }
+      ],
+      "ms": 0
+     },
+     {
+      "nctId": "NCT03299322",
+      "title": "A Study to Assess Jia Wei Yang He Formula as a Plus Therapy in the Treatment of Persistent Asthma",
+      "criteria": [
+       {
+        "criterionId": "NCT03299322::inc::0",
+        "nctId": "NCT03299322",
+        "text": "Patient diagnosed with chronic persistent asthma",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::inc::1",
+        "nctId": "NCT03299322",
+        "text": "Annual uncontrollable time \u2265 3 months",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": "\u2265 3 months"
+       },
+       {
+        "criterionId": "NCT03299322::inc::2",
+        "nctId": "NCT03299322",
+        "text": "Patients who have given written informed consent",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::0",
+        "nctId": "NCT03299322",
+        "text": "History of upper upper/lower respiratory infection in the previous 1 months",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "1 months; History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::1",
+        "nctId": "NCT03299322",
+        "text": "History of long-term controller medication use for asthma (oral corticosteroid",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::2",
+        "nctId": "NCT03299322",
+        "text": "intravenous corticosteroids therapy) within the preceding 1 months",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "preceding 1 months"
+       },
+       {
+        "criterionId": "NCT03299322::exc::3",
+        "nctId": "NCT03299322",
+        "text": "History of antibiotic use in the previous 1 months",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "1 months; History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::4",
+        "nctId": "NCT03299322",
+        "text": "History of life-threatening asthma",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::5",
+        "nctId": "NCT03299322",
+        "text": "History of chronic lung diseases other than asthma, including but not limited to chronic obstructive pulmonary disease, bronchiectasis, emphysema, tuberculosis, sarcoidosis, pulmonary fibrosis, lung cancer, etc",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::6",
+        "nctId": "NCT03299322",
+        "text": "History of serious disease of the heart",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::7",
+        "nctId": "NCT03299322",
+        "text": "History of serious disease of the cerebrovascular disease",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::8",
+        "nctId": "NCT03299322",
+        "text": "History of severe liver",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::9",
+        "nctId": "NCT03299322",
+        "text": "History of renal dysfunction",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::10",
+        "nctId": "NCT03299322",
+        "text": "History of disease",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::11",
+        "nctId": "NCT03299322",
+        "text": "History of severe disease in the hematopoietic system",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::12",
+        "nctId": "NCT03299322",
+        "text": "History of immunodeficiency (including, but not limited to, HIV positive detection",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::13",
+        "nctId": "NCT03299322",
+        "text": "other acquired",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::14",
+        "nctId": "NCT03299322",
+        "text": "congenital immunodeficiency disease",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::15",
+        "nctId": "NCT03299322",
+        "text": "organ transplant history) History of any other condition (such as known drug",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::16",
+        "nctId": "NCT03299322",
+        "text": "alcohol abuse",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::17",
+        "nctId": "NCT03299322",
+        "text": "psychiatric disorder) which, in the opinion of the investigator, may preclude the patient from following",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::18",
+        "nctId": "NCT03299322",
+        "text": "completing the protocol",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::19",
+        "nctId": "NCT03299322",
+        "text": "Are currently enrolled in",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "currently"
+       },
+       {
+        "criterionId": "NCT03299322::exc::20",
+        "nctId": "NCT03299322",
+        "text": "discontinued within the last 30 days from, a clinical trial involving an investigational product",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "within the last 30 days"
+       },
+       {
+        "criterionId": "NCT03299322::exc::21",
+        "nctId": "NCT03299322",
+        "text": "non-approved use of a drug",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::22",
+        "nctId": "NCT03299322",
+        "text": "device (other than the investigational product used in this study)",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::23",
+        "nctId": "NCT03299322",
+        "text": "concurrently enrolled in any other type of medical research judged not to be scientifically",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::24",
+        "nctId": "NCT03299322",
+        "text": "medically compatible with this study",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::25",
+        "nctId": "NCT03299322",
+        "text": "History of allergies to the component of the investigated drugs",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "History of"
+       },
+       {
+        "criterionId": "NCT03299322::exc::26",
+        "nctId": "NCT03299322",
+        "text": "Smoking within the past year",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::27",
+        "nctId": "NCT03299322",
+        "text": "Contraindication to induced sputum collection method on history",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::28",
+        "nctId": "NCT03299322",
+        "text": "Contraindication to induced sputum collection method on examination",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::29",
+        "nctId": "NCT03299322",
+        "text": "Any serious medical condition which, in the opinion of the Investigator, would pose a significant risk to the patient",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::30",
+        "nctId": "NCT03299322",
+        "text": "interfere with the interpretation of safety, efficacy",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT03299322::exc::31",
+        "nctId": "NCT03299322",
+        "text": "pharmacodynamic data",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       }
+      ],
+      "ms": 1
+     },
+     {
+      "nctId": "NCT04438239",
+      "title": "Rehabilitation Needs After COVID-19 Hospital Treatment",
+      "criteria": [
+       {
+        "criterionId": "NCT04438239::inc::0",
+        "nctId": "NCT04438239",
+        "text": "age>18, positive at COVID-19 manifesting symptoms that required hospitalization, that is history of fever",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": "history of"
+       },
+       {
+        "criterionId": "NCT04438239::inc::1",
+        "nctId": "NCT04438239",
+        "text": "pneumonia",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04438239::inc::2",
+        "nctId": "NCT04438239",
+        "text": "other symptoms COVID-19 related",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04438239::exc::0",
+        "nctId": "NCT04438239",
+        "text": "asymptomatic individuals COVID-19 positive that were hospitalized for reasons other than COVID-19 dementia psychiatric disorders other diseases preventing people to participate to the rehabilitation assessments provided by this protocol acute",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04438239::exc::1",
+        "nctId": "NCT04438239",
+        "text": "post-acute clinical conditions causing disability itself (e.g.: major neurological disease, such as recent stroke, TBI, etc.",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "recent"
+       },
+       {
+        "criterionId": "NCT04438239::exc::2",
+        "nctId": "NCT04438239",
+        "text": "recent surgical intervention",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "recent"
+       },
+       {
+        "criterionId": "NCT04438239::exc::3",
+        "nctId": "NCT04438239",
+        "text": "heart failure, etc.), previous complete dependence in ADLs",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       }
+      ],
+      "ms": 0
+     },
+     {
+      "nctId": "NCT00367627",
+      "title": "Relative Efficacy of Two Regimens of Ante-helminthic Treatment",
+      "criteria": [
+       {
+        "criterionId": "NCT00367627::inc::0",
+        "nctId": "NCT00367627",
+        "text": "The inclusion criteria are",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00367627::inc::1",
+        "nctId": "NCT00367627",
+        "text": "age of the child is 2-5 years old,",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": "5 years"
+       },
+       {
+        "criterionId": "NCT00367627::inc::2",
+        "nctId": "NCT00367627",
+        "text": "he/she has not been suffering from serious chronic illness,",
+        "criterionType": "inclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00367627::inc::3",
+        "nctId": "NCT00367627",
+        "text": "the child stool test must be positive for STH,",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00367627::inc::4",
+        "nctId": "NCT00367627",
+        "text": "he/she had not been taken any antehelminthic drug in the previous six months, 5. parents/guardian are agree for their child participation in the study. e",
+        "criterionType": "inclusion",
+        "negation": true,
+        "temporal": "six months"
+       },
+       {
+        "criterionId": "NCT00367627::exc::0",
+        "nctId": "NCT00367627",
+        "text": "age of the child less than 2 years old",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "less than 2 years"
+       },
+       {
+        "criterionId": "NCT00367627::exc::1",
+        "nctId": "NCT00367627",
+        "text": "more than 5 years old,",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": "more than 5 years"
+       },
+       {
+        "criterionId": "NCT00367627::exc::2",
+        "nctId": "NCT00367627",
+        "text": "his/her stool test negative for any intestinal helminth,",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00367627::exc::3",
+        "nctId": "NCT00367627",
+        "text": "he/she has been suffering from serious chronic illness,",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00367627::exc::4",
+        "nctId": "NCT00367627",
+        "text": "parents/guardian are not willing to give consent for their child's participation in the study,",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT00367627::exc::5",
+        "nctId": "NCT00367627",
+        "text": "if he/she receives any antehelminthic drug after survey but before the study interventions",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       }
+      ],
+      "ms": 0
+     },
+     {
+      "nctId": "NCT02881814",
+      "title": "UltraSound for Accurate Decisions in Chest PhysioTherapy",
+      "criteria": [
+       {
+        "criterionId": "NCT02881814::inc::0",
+        "nctId": "NCT02881814",
+        "text": "Hypoxemia(SpO2/FiO2< 315 (15))(indication for chest physiotherapy)(cf. annexe 1) Medical prescription for chest physiotherapy",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::inc::1",
+        "nctId": "NCT02881814",
+        "text": "First session of chest physiotherapy",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::inc::2",
+        "nctId": "NCT02881814",
+        "text": "Chest X-ray<12h available",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::inc::3",
+        "nctId": "NCT02881814",
+        "text": "Physiotherapist/operator qualified in LUS available",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::inc::4",
+        "nctId": "NCT02881814",
+        "text": "Patient's consent",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::0",
+        "nctId": "NCT02881814",
+        "text": "Presence of a contra-indication for chest physiotherapy",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::1",
+        "nctId": "NCT02881814",
+        "text": "Absence of hypoxemia",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::2",
+        "nctId": "NCT02881814",
+        "text": "Absence of a prescription for chest physiotherapy",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::3",
+        "nctId": "NCT02881814",
+        "text": "Absence of a chest X-ray < 12h from the time of physiotherapy assessment",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::4",
+        "nctId": "NCT02881814",
+        "text": "Physiotherapist/operator qualified in LUS not available",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::5",
+        "nctId": "NCT02881814",
+        "text": "Lung",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::6",
+        "nctId": "NCT02881814",
+        "text": "diaphragm US not possible (surgical emphysema, dressing, scarring, drains etc.)",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::7",
+        "nctId": "NCT02881814",
+        "text": "Refusal of the patient",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::8",
+        "nctId": "NCT02881814",
+        "text": "a relative to participate in the study",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::9",
+        "nctId": "NCT02881814",
+        "text": "Patients to be discharged on the day of the study",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::10",
+        "nctId": "NCT02881814",
+        "text": "Patients in palliative care",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT02881814::exc::11",
+        "nctId": "NCT02881814",
+        "text": "Withdrawal/limitations of medical care with impending death",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       }
+      ],
+      "ms": 0
+     },
+     {
+      "nctId": "NCT04225650",
+      "title": "Prevalence of Respiratory Impairment During IBD",
+      "criteria": [
+       {
+        "criterionId": "NCT04225650::inc::0",
+        "nctId": "NCT04225650",
+        "text": "Diagnosed with IBD (Crohn disease",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::inc::1",
+        "nctId": "NCT04225650",
+        "text": "Ulcerative colitis) between January 1990",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::inc::2",
+        "nctId": "NCT04225650",
+        "text": "December 2019",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::inc::3",
+        "nctId": "NCT04225650",
+        "text": "Consultation in the Hepato-Gastroenterology Department of the CHRU Nancy-Brabois Patients who received full information about the research organization",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::inc::4",
+        "nctId": "NCT04225650",
+        "text": "did not object to the use of the data",
+        "criterionType": "inclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::inc::5",
+        "nctId": "NCT04225650",
+        "text": "Patients over 18 years of age",
+        "criterionType": "inclusion",
+        "negation": false,
+        "temporal": "18 years"
+       },
+       {
+        "criterionId": "NCT04225650::exc::0",
+        "nctId": "NCT04225650",
+        "text": "Inability to complete the questionnaire",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::exc::1",
+        "nctId": "NCT04225650",
+        "text": "Diagnosis of IBD uncertain",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::exc::2",
+        "nctId": "NCT04225650",
+        "text": "Persons referred to in Articles L. 1121-5, L. 1121-7",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::exc::3",
+        "nctId": "NCT04225650",
+        "text": "L1121-8 of the Public Health Code :Pregnant, parturient",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::exc::4",
+        "nctId": "NCT04225650",
+        "text": "breastfeeding mother, Minor person, person who is subject to a legal protection measure",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::exc::5",
+        "nctId": "NCT04225650",
+        "text": "Unable to express consent",
+        "criterionType": "exclusion",
+        "negation": true,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::exc::6",
+        "nctId": "NCT04225650",
+        "text": "Persons deprived of their liberty by a judicial",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::exc::7",
+        "nctId": "NCT04225650",
+        "text": "Persons deprived of their liberty by a administrative decision,",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::exc::8",
+        "nctId": "NCT04225650",
+        "text": "Persons under psychiatric care (articles L. 3212-1",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       },
+       {
+        "criterionId": "NCT04225650::exc::9",
+        "nctId": "NCT04225650",
+        "text": "Persons under L. 3213-1)",
+        "criterionType": "exclusion",
+        "negation": false,
+        "temporal": ""
+       }
+      ],
+      "ms": 1
+     }
+    ],
+    "total": 132
+   }
+  },
+  {
+   "id": "match",
+   "fn": "match via zeroShot",
+   "ms": 377212,
+   "in": {
+    "rung": "zeroShot",
+    "calledVia": "match.match()"
+   },
+   "out": {
+    "decisions": 132,
+    "labels": {
+     "MET": 18,
+     "UNKNOWN": 44,
+     "NOT_MET": 70
+    }
+   }
+  },
+  {
+   "id": "verify",
+   "fn": "verify.verify",
+   "ms": 0,
+   "in": {
+    "decisions": 132
+   },
+   "out": {
+    "forcedAbstentions": 0,
+    "labels": {
+     "MET": 18,
+     "UNKNOWN": 44,
+     "NOT_MET": 70
+    },
+    "supportedRate": 1.0
+   }
+  },
+  {
+   "id": "rank",
+   "fn": "rank.aggregate",
+   "ms": 0,
+   "in": {
+    "weights": {
+     "retrievalPrior": 1.0,
+     "inclusionMet": 1.0,
+     "inclusionFailed": 1.0,
+     "exclusionHit": 5.0
+    }
+   },
+   "out": {
+    "ranked": [
+     {
+      "nctId": "NCT04394026",
+      "score": 0.35041594367520157,
+      "missing": 5
+     },
+     {
+      "nctId": "NCT04438239",
+      "score": -1.0,
+      "missing": 3
+     },
+     {
+      "nctId": "NCT04225650",
+      "score": -3.5,
+      "missing": 3
+     },
+     {
+      "nctId": "NCT00711399",
+      "score": -3.9937332180088894,
+      "missing": 0
+     },
+     {
+      "nctId": "NCT04481360",
+      "score": -4.677886183699513,
+      "missing": 1
+     },
+     {
+      "nctId": "NCT00992966",
+      "score": -5.986571750682437,
+      "missing": 8
+     },
+     {
+      "nctId": "NCT00367627",
+      "score": -6.919526135543766,
+      "missing": 1
+     },
+     {
+      "nctId": "NCT01102322",
+      "score": -7.937608448719761,
+      "missing": 4
+     },
+     {
+      "nctId": "NCT02881814",
+      "score": -11.946113803549627,
+      "missing": 5
+     },
+     {
+      "nctId": "NCT03299322",
+      "score": -13.835220106405925,
+      "missing": 14
+     }
+    ]
+   }
+  }
+ ],
+ "trials": [
+  {
+   "nctId": "NCT04394026",
+   "title": "Imaging Feature of SARS-CoV2 Infection",
+   "condition": "",
+   "retrievalScore": 0.35041594367520157,
+   "retrieverBreakdown": {
+    "hybrid": 0.35041594367520157,
+    "rerank": -2.3592653274536133
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT04394026::inc::0",
+      "nctId": "NCT04394026",
+      "text": "CoViD-19 positive patients (rRT-PCR naso-pharyngeal swab)",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::0",
+      "trialSpan": "CoViD-19 positive patients (rRT-PCR naso-pharyngeal swab)",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::0",
+      "trialSpan": "CoViD-19 positive patients (rRT-PCR naso-pharyngeal swab)",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04394026::inc::1",
+      "nctId": "NCT04394026",
+      "text": "Suspicion of SARS-CoV2 on chest X-ray and/or chest CT presentation of disease",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::1",
+      "trialSpan": "Suspicion of SARS-CoV2 on chest X-ray and/or chest CT presentation of disease",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::1",
+      "trialSpan": "Suspicion of SARS-CoV2 on chest X-ray and/or chest CT presentation of disease",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04394026::inc::2",
+      "nctId": "NCT04394026",
+      "text": "Patients of all ages",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::2",
+      "trialSpan": "Patients of all ages",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::2",
+      "trialSpan": "Patients of all ages",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04394026::inc::3",
+      "nctId": "NCT04394026",
+      "text": "Subjects at risk (minors, patients in emergency situations, pregnant women, potentially incapable of giving their consent )",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::3",
+      "trialSpan": "Subjects at risk (minors, patients in emergency situations, pregnant women, potentially incapable of giving their consent )",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::3",
+      "trialSpan": "Subjects at risk (minors, patients in emergency situations, pregnant women, potentially incapable of giving their consent )",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04394026::inc::4",
+      "nctId": "NCT04394026",
+      "text": "Having signed the Informed Consent",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::4",
+      "trialSpan": "Having signed the Informed Consent",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04394026::inc::4",
+      "trialSpan": "Having signed the Informed Consent",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04394026::exc::0",
+      "nctId": "NCT04394026",
+      "text": "Not fulfilling any of the above",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9995,
+      "criterionId": "NCT04394026::exc::0",
+      "trialSpan": "Not fulfilling any of the above",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9995,
+      "criterionId": "NCT04394026::exc::0",
+      "trialSpan": "Not fulfilling any of the above",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": 0.35041594367520157,
+   "missingInfo": [
+    "NCT04394026::inc::0",
+    "NCT04394026::inc::1",
+    "NCT04394026::inc::2",
+    "NCT04394026::inc::3",
+    "NCT04394026::inc::4"
+   ],
+   "parseMs": 0,
+   "matchMs": 18560,
+   "calledVia": "match.match()"
+  },
+  {
+   "nctId": "NCT04438239",
+   "title": "Rehabilitation Needs After COVID-19 Hospital Treatment",
+   "condition": "",
+   "retrievalScore": 0.0,
+   "retrieverBreakdown": {
+    "hybrid": 0.0,
+    "rerank": -7.958393573760986
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT04438239::inc::0",
+      "nctId": "NCT04438239",
+      "text": "age>18, positive at COVID-19 manifesting symptoms that required hospitalization, that is history of fever",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": "history of"
+     },
+     "raw": {
+      "confidence": 0.9976,
+      "criterionId": "NCT04438239::inc::0",
+      "trialSpan": "age>18, positive at COVID-19 manifesting symptoms that required hospitalization, that is history of fever",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9976,
+      "criterionId": "NCT04438239::inc::0",
+      "trialSpan": "age>18, positive at COVID-19 manifesting symptoms that required hospitalization, that is history of fever",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04438239::inc::1",
+      "nctId": "NCT04438239",
+      "text": "pneumonia",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04438239::inc::1",
+      "trialSpan": "pneumonia",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04438239::inc::1",
+      "trialSpan": "pneumonia",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04438239::inc::2",
+      "nctId": "NCT04438239",
+      "text": "other symptoms COVID-19 related",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04438239::inc::2",
+      "trialSpan": "other symptoms COVID-19 related",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04438239::inc::2",
+      "trialSpan": "other symptoms COVID-19 related",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04438239::exc::0",
+      "nctId": "NCT04438239",
+      "text": "asymptomatic individuals COVID-19 positive that were hospitalized for reasons other than COVID-19 dementia psychiatric disorders other diseases preventing people to participate to the rehabilitation assessments provided by this protocol acute",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.959,
+      "criterionId": "NCT04438239::exc::0",
+      "trialSpan": "asymptomatic individuals COVID-19 positive that were hospitalized for reasons other than COVID-19 dementia psychiatric disorders other diseases preventing people to participate to the rehabilitation assessments provided by this protocol acute",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.959,
+      "criterionId": "NCT04438239::exc::0",
+      "trialSpan": "asymptomatic individuals COVID-19 positive that were hospitalized for reasons other than COVID-19 dementia psychiatric disorders other diseases preventing people to participate to the rehabilitation assessments provided by this protocol acute",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04438239::exc::1",
+      "nctId": "NCT04438239",
+      "text": "post-acute clinical conditions causing disability itself (e.g.: major neurological disease, such as recent stroke, TBI, etc.",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "recent"
+     },
+     "raw": {
+      "confidence": 0.9785,
+      "criterionId": "NCT04438239::exc::1",
+      "trialSpan": "post-acute clinical conditions causing disability itself (e.g.: major neurological disease, such as recent stroke, TBI, etc.",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9785,
+      "criterionId": "NCT04438239::exc::1",
+      "trialSpan": "post-acute clinical conditions causing disability itself (e.g.: major neurological disease, such as recent stroke, TBI, etc.",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04438239::exc::2",
+      "nctId": "NCT04438239",
+      "text": "recent surgical intervention",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "recent"
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04438239::exc::2",
+      "trialSpan": "recent surgical intervention",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04438239::exc::2",
+      "trialSpan": "recent surgical intervention",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04438239::exc::3",
+      "nctId": "NCT04438239",
+      "text": "heart failure, etc.), previous complete dependence in ADLs",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9956,
+      "criterionId": "NCT04438239::exc::3",
+      "trialSpan": "heart failure, etc.), previous complete dependence in ADLs",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9956,
+      "criterionId": "NCT04438239::exc::3",
+      "trialSpan": "heart failure, etc.), previous complete dependence in ADLs",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": -1.0,
+   "missingInfo": [
+    "NCT04438239::inc::1",
+    "NCT04438239::inc::2",
+    "NCT04438239::exc::2"
+   ],
+   "parseMs": 0,
+   "matchMs": 21376,
+   "calledVia": "match.match()"
+  },
+  {
+   "nctId": "NCT04225650",
+   "title": "Prevalence of Respiratory Impairment During IBD",
+   "condition": "",
+   "retrievalScore": 0.5,
+   "retrieverBreakdown": {
+    "hybrid": 0.5,
+    "rerank": -10.1256103515625
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::inc::0",
+      "nctId": "NCT04225650",
+      "text": "Diagnosed with IBD (Crohn disease",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9595,
+      "criterionId": "NCT04225650::inc::0",
+      "trialSpan": "Diagnosed with IBD (Crohn disease",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9595,
+      "criterionId": "NCT04225650::inc::0",
+      "trialSpan": "Diagnosed with IBD (Crohn disease",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::inc::1",
+      "nctId": "NCT04225650",
+      "text": "Ulcerative colitis) between January 1990",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9907,
+      "criterionId": "NCT04225650::inc::1",
+      "trialSpan": "Ulcerative colitis) between January 1990",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9907,
+      "criterionId": "NCT04225650::inc::1",
+      "trialSpan": "Ulcerative colitis) between January 1990",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::inc::2",
+      "nctId": "NCT04225650",
+      "text": "December 2019",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.999,
+      "criterionId": "NCT04225650::inc::2",
+      "trialSpan": "December 2019",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.999,
+      "criterionId": "NCT04225650::inc::2",
+      "trialSpan": "December 2019",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::inc::3",
+      "nctId": "NCT04225650",
+      "text": "Consultation in the Hepato-Gastroenterology Department of the CHRU Nancy-Brabois Patients who received full information about the research organization",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.624,
+      "criterionId": "NCT04225650::inc::3",
+      "trialSpan": "Consultation in the Hepato-Gastroenterology Department of the CHRU Nancy-Brabois Patients who received full information about the research organization",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.624,
+      "criterionId": "NCT04225650::inc::3",
+      "trialSpan": "Consultation in the Hepato-Gastroenterology Department of the CHRU Nancy-Brabois Patients who received full information about the research organization",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::inc::4",
+      "nctId": "NCT04225650",
+      "text": "did not object to the use of the data",
+      "criterionType": "inclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9277,
+      "criterionId": "NCT04225650::inc::4",
+      "trialSpan": "did not object to the use of the data",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9277,
+      "criterionId": "NCT04225650::inc::4",
+      "trialSpan": "did not object to the use of the data",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::inc::5",
+      "nctId": "NCT04225650",
+      "text": "Patients over 18 years of age",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": "18 years"
+     },
+     "raw": {
+      "confidence": 0.998,
+      "criterionId": "NCT04225650::inc::5",
+      "trialSpan": "Patients over 18 years of age",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.998,
+      "criterionId": "NCT04225650::inc::5",
+      "trialSpan": "Patients over 18 years of age",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::0",
+      "nctId": "NCT04225650",
+      "text": "Inability to complete the questionnaire",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9971,
+      "criterionId": "NCT04225650::exc::0",
+      "trialSpan": "Inability to complete the questionnaire",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9971,
+      "criterionId": "NCT04225650::exc::0",
+      "trialSpan": "Inability to complete the questionnaire",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::1",
+      "nctId": "NCT04225650",
+      "text": "Diagnosis of IBD uncertain",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04225650::exc::1",
+      "trialSpan": "Diagnosis of IBD uncertain",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04225650::exc::1",
+      "trialSpan": "Diagnosis of IBD uncertain",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::2",
+      "nctId": "NCT04225650",
+      "text": "Persons referred to in Articles L. 1121-5, L. 1121-7",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04225650::exc::2",
+      "trialSpan": "Persons referred to in Articles L. 1121-5, L. 1121-7",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04225650::exc::2",
+      "trialSpan": "Persons referred to in Articles L. 1121-5, L. 1121-7",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::3",
+      "nctId": "NCT04225650",
+      "text": "L1121-8 of the Public Health Code :Pregnant, parturient",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9497,
+      "criterionId": "NCT04225650::exc::3",
+      "trialSpan": "L1121-8 of the Public Health Code :Pregnant, parturient",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9497,
+      "criterionId": "NCT04225650::exc::3",
+      "trialSpan": "L1121-8 of the Public Health Code :Pregnant, parturient",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::4",
+      "nctId": "NCT04225650",
+      "text": "breastfeeding mother, Minor person, person who is subject to a legal protection measure",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9893,
+      "criterionId": "NCT04225650::exc::4",
+      "trialSpan": "breastfeeding mother, Minor person, person who is subject to a legal protection measure",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9893,
+      "criterionId": "NCT04225650::exc::4",
+      "trialSpan": "breastfeeding mother, Minor person, person who is subject to a legal protection measure",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::5",
+      "nctId": "NCT04225650",
+      "text": "Unable to express consent",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9995,
+      "criterionId": "NCT04225650::exc::5",
+      "trialSpan": "Unable to express consent",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9995,
+      "criterionId": "NCT04225650::exc::5",
+      "trialSpan": "Unable to express consent",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::6",
+      "nctId": "NCT04225650",
+      "text": "Persons deprived of their liberty by a judicial",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9219,
+      "criterionId": "NCT04225650::exc::6",
+      "trialSpan": "Persons deprived of their liberty by a judicial",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9219,
+      "criterionId": "NCT04225650::exc::6",
+      "trialSpan": "Persons deprived of their liberty by a judicial",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::7",
+      "nctId": "NCT04225650",
+      "text": "Persons deprived of their liberty by a administrative decision,",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9502,
+      "criterionId": "NCT04225650::exc::7",
+      "trialSpan": "Persons deprived of their liberty by a administrative decision,",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9502,
+      "criterionId": "NCT04225650::exc::7",
+      "trialSpan": "Persons deprived of their liberty by a administrative decision,",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::8",
+      "nctId": "NCT04225650",
+      "text": "Persons under psychiatric care (articles L. 3212-1",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.8218,
+      "criterionId": "NCT04225650::exc::8",
+      "trialSpan": "Persons under psychiatric care (articles L. 3212-1",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8218,
+      "criterionId": "NCT04225650::exc::8",
+      "trialSpan": "Persons under psychiatric care (articles L. 3212-1",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04225650::exc::9",
+      "nctId": "NCT04225650",
+      "text": "Persons under L. 3213-1)",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04225650::exc::9",
+      "trialSpan": "Persons under L. 3213-1)",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04225650::exc::9",
+      "trialSpan": "Persons under L. 3213-1)",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": -3.5,
+   "missingInfo": [
+    "NCT04225650::exc::1",
+    "NCT04225650::exc::2",
+    "NCT04225650::exc::9"
+   ],
+   "parseMs": 1,
+   "matchMs": 44268,
+   "calledVia": "match.match()"
+  },
+  {
+   "nctId": "NCT00711399",
+   "title": "Assessment of Cough and Wheeze With Breath Sound Documenting Device",
+   "condition": "",
+   "retrievalScore": 0.006266781991110525,
+   "retrieverBreakdown": {
+    "hybrid": 0.006266781991110525,
+    "rerank": -6.555073261260986
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT00711399::inc::0",
+      "nctId": "NCT00711399",
+      "text": "Patient and/or parents/guardian signed informed consent",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.6626,
+      "criterionId": "NCT00711399::inc::0",
+      "trialSpan": "Patient and/or parents/guardian signed informed consent",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.6626,
+      "criterionId": "NCT00711399::inc::0",
+      "trialSpan": "Patient and/or parents/guardian signed informed consent",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00711399::inc::1",
+      "nctId": "NCT00711399",
+      "text": "Patients with cough",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.8032,
+      "criterionId": "NCT00711399::inc::1",
+      "trialSpan": "Patients with cough",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8032,
+      "criterionId": "NCT00711399::inc::1",
+      "trialSpan": "Patients with cough",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00711399::inc::2",
+      "nctId": "NCT00711399",
+      "text": "Patients with shortness of breath",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9814,
+      "criterionId": "NCT00711399::inc::2",
+      "trialSpan": "Patients with shortness of breath",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9814,
+      "criterionId": "NCT00711399::inc::2",
+      "trialSpan": "Patients with shortness of breath",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00711399::exc::0",
+      "nctId": "NCT00711399",
+      "text": "Chest tubes",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9961,
+      "criterionId": "NCT00711399::exc::0",
+      "trialSpan": "Chest tubes",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9961,
+      "criterionId": "NCT00711399::exc::0",
+      "trialSpan": "Chest tubes",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00711399::exc::1",
+      "nctId": "NCT00711399",
+      "text": "Skin lesions precluding attachment of sensors",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9985,
+      "criterionId": "NCT00711399::exc::1",
+      "trialSpan": "Skin lesions precluding attachment of sensors",
+      "patientSpan": "A chest x-ray shows bilateral lung infiltrates.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9985,
+      "criterionId": "NCT00711399::exc::1",
+      "trialSpan": "Skin lesions precluding attachment of sensors",
+      "patientSpan": "A chest x-ray shows bilateral lung infiltrates.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00711399::exc::2",
+      "nctId": "NCT00711399",
+      "text": "Respiratory distress",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9805,
+      "criterionId": "NCT00711399::exc::2",
+      "trialSpan": "Respiratory distress",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9805,
+      "criterionId": "NCT00711399::exc::2",
+      "trialSpan": "Respiratory distress",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00711399::exc::3",
+      "nctId": "NCT00711399",
+      "text": "Pregnant women",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9751,
+      "criterionId": "NCT00711399::exc::3",
+      "trialSpan": "Pregnant women",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9751,
+      "criterionId": "NCT00711399::exc::3",
+      "trialSpan": "Pregnant women",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": -3.9937332180088894,
+   "missingInfo": [],
+   "parseMs": 0,
+   "matchMs": 18081,
+   "calledVia": "match.match()"
+  },
+  {
+   "nctId": "NCT04481360",
+   "title": "Evaluation of Clinical Characteristics and Outcome of COVID19 Pneumonia in Assiut University Hospital",
+   "condition": "",
+   "retrievalScore": 0.32211381630048674,
+   "retrieverBreakdown": {
+    "hybrid": 0.32211381630048674,
+    "rerank": -4.547192573547363
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT04481360::inc::0",
+      "nctId": "NCT04481360",
+      "text": "Patients with COVID 19 PCR positive",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT04481360::inc::0",
+      "trialSpan": "Patients with COVID 19 PCR positive",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT04481360::inc::0",
+      "trialSpan": "Patients with COVID 19 PCR positive",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT04481360::exc::0",
+      "nctId": "NCT04481360",
+      "text": "Patients less than 18 years of age",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "less than 18 years"
+     },
+     "raw": {
+      "confidence": 0.9941,
+      "criterionId": "NCT04481360::exc::0",
+      "trialSpan": "Patients less than 18 years of age",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9941,
+      "criterionId": "NCT04481360::exc::0",
+      "trialSpan": "Patients less than 18 years of age",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": -4.677886183699513,
+   "missingInfo": [
+    "NCT04481360::inc::0"
+   ],
+   "parseMs": 0,
+   "matchMs": 6005,
+   "calledVia": "match.match()"
+  },
+  {
+   "nctId": "NCT00992966",
+   "title": "Vibration Response Imaging (VRI) in Children With Acute Respiratory Symptoms",
+   "condition": "",
+   "retrievalScore": 0.013428249317563354,
+   "retrieverBreakdown": {
+    "hybrid": 0.013428249317563354,
+    "rerank": -1.5502313375473022
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::0",
+      "nctId": "NCT00992966",
+      "text": "Subject's parent",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9805,
+      "criterionId": "NCT00992966::inc::0",
+      "trialSpan": "Subject's parent",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9805,
+      "criterionId": "NCT00992966::inc::0",
+      "trialSpan": "Subject's parent",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::1",
+      "nctId": "NCT00992966",
+      "text": "legal guardian, is able",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::1",
+      "trialSpan": "legal guardian, is able",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::1",
+      "trialSpan": "legal guardian, is able",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::2",
+      "nctId": "NCT00992966",
+      "text": "willing to read the Informed Consent, understands the Informed Consent",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::2",
+      "trialSpan": "willing to read the Informed Consent, understands the Informed Consent",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::2",
+      "trialSpan": "willing to read the Informed Consent, understands the Informed Consent",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::3",
+      "nctId": "NCT00992966",
+      "text": "provides written Informed Consent for the subject; if the minor child is in fact able to give consent, the minor's consent must be obtained in addition to the consent of the minor's legal guardian",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::3",
+      "trialSpan": "provides written Informed Consent for the subject; if the minor child is in fact able to give consent, the minor's consent must be obtained in addition to the consent of the minor's legal guardian",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::3",
+      "trialSpan": "provides written Informed Consent for the subject; if the minor child is in fact able to give consent, the minor's consent must be obtained in addition to the consent of the minor's legal guardian",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::4",
+      "nctId": "NCT00992966",
+      "text": "Boy",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9556,
+      "criterionId": "NCT00992966::inc::4",
+      "trialSpan": "Boy",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9556,
+      "criterionId": "NCT00992966::inc::4",
+      "trialSpan": "Boy",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::5",
+      "nctId": "NCT00992966",
+      "text": "girl in the age range of 3-18 years",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": "18 years"
+     },
+     "raw": {
+      "confidence": 0.9961,
+      "criterionId": "NCT00992966::inc::5",
+      "trialSpan": "girl in the age range of 3-18 years",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9961,
+      "criterionId": "NCT00992966::inc::5",
+      "trialSpan": "girl in the age range of 3-18 years",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::6",
+      "nctId": "NCT00992966",
+      "text": "Patient presented with acute respiratory complaints, acute cough, onset of shortness of breath",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9985,
+      "criterionId": "NCT00992966::inc::6",
+      "trialSpan": "Patient presented with acute respiratory complaints, acute cough, onset of shortness of breath",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9985,
+      "criterionId": "NCT00992966::inc::6",
+      "trialSpan": "Patient presented with acute respiratory complaints, acute cough, onset of shortness of breath",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::7",
+      "nctId": "NCT00992966",
+      "text": "Patient presented with acute respiratory complaints, acute cough, onset of shortness of fever",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.999,
+      "criterionId": "NCT00992966::inc::7",
+      "trialSpan": "Patient presented with acute respiratory complaints, acute cough, onset of shortness of fever",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.999,
+      "criterionId": "NCT00992966::inc::7",
+      "trialSpan": "Patient presented with acute respiratory complaints, acute cough, onset of shortness of fever",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::8",
+      "nctId": "NCT00992966",
+      "text": "Patient referred by ED physician",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::8",
+      "trialSpan": "Patient referred by ED physician",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::8",
+      "trialSpan": "Patient referred by ED physician",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::inc::9",
+      "nctId": "NCT00992966",
+      "text": "Patient referred by presented for CXR",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::9",
+      "trialSpan": "Patient referred by presented for CXR",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::inc::9",
+      "trialSpan": "Patient referred by presented for CXR",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::exc::0",
+      "nctId": "NCT00992966",
+      "text": "Body habitus",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9175,
+      "criterionId": "NCT00992966::exc::0",
+      "trialSpan": "Body habitus",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9175,
+      "criterionId": "NCT00992966::exc::0",
+      "trialSpan": "Body habitus",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::exc::1",
+      "nctId": "NCT00992966",
+      "text": "skin condition that might prevent the placement of the sound sensors on the back (e.g. severe scoliosis, kyphosis, chest wall deformation, skin lesion on the back",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.562,
+      "criterionId": "NCT00992966::exc::1",
+      "trialSpan": "skin condition that might prevent the placement of the sound sensors on the back (e.g. severe scoliosis, kyphosis, chest wall deformation, skin lesion on the back",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.562,
+      "criterionId": "NCT00992966::exc::1",
+      "trialSpan": "skin condition that might prevent the placement of the sound sensors on the back (e.g. severe scoliosis, kyphosis, chest wall deformation, skin lesion on the back",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::exc::2",
+      "nctId": "NCT00992966",
+      "text": "compression fracture)",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.998,
+      "criterionId": "NCT00992966::exc::2",
+      "trialSpan": "compression fracture)",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.998,
+      "criterionId": "NCT00992966::exc::2",
+      "trialSpan": "compression fracture)",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::exc::3",
+      "nctId": "NCT00992966",
+      "text": "Potentially contagious skin lesion on the back",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9966,
+      "criterionId": "NCT00992966::exc::3",
+      "trialSpan": "Potentially contagious skin lesion on the back",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9966,
+      "criterionId": "NCT00992966::exc::3",
+      "trialSpan": "Potentially contagious skin lesion on the back",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::exc::4",
+      "nctId": "NCT00992966",
+      "text": "Subject has had lung surgery",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::exc::4",
+      "trialSpan": "Subject has had lung surgery",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::exc::4",
+      "trialSpan": "Subject has had lung surgery",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::exc::5",
+      "nctId": "NCT00992966",
+      "text": "Subject was prescribed the CXR for monitoring",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::exc::5",
+      "trialSpan": "Subject was prescribed the CXR for monitoring",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::exc::5",
+      "trialSpan": "Subject was prescribed the CXR for monitoring",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00992966::exc::6",
+      "nctId": "NCT00992966",
+      "text": "follow up of a lung condition that pre-existed the current, acute symptoms",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::exc::6",
+      "trialSpan": "follow up of a lung condition that pre-existed the current, acute symptoms",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT00992966::exc::6",
+      "trialSpan": "follow up of a lung condition that pre-existed the current, acute symptoms",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": -5.986571750682437,
+   "missingInfo": [
+    "NCT00992966::inc::1",
+    "NCT00992966::inc::2",
+    "NCT00992966::inc::3",
+    "NCT00992966::inc::8",
+    "NCT00992966::inc::9",
+    "NCT00992966::exc::4",
+    "NCT00992966::exc::5",
+    "NCT00992966::exc::6"
+   ],
+   "parseMs": 0,
+   "matchMs": 51154,
+   "calledVia": "match.match()"
+  },
+  {
+   "nctId": "NCT00367627",
+   "title": "Relative Efficacy of Two Regimens of Ante-helminthic Treatment",
+   "condition": "",
+   "retrievalScore": 0.08047386445623426,
+   "retrieverBreakdown": {
+    "hybrid": 0.08047386445623426,
+    "rerank": -8.45624828338623
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::inc::0",
+      "nctId": "NCT00367627",
+      "text": "The inclusion criteria are",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.6333,
+      "criterionId": "NCT00367627::inc::0",
+      "trialSpan": "The inclusion criteria are",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.6333,
+      "criterionId": "NCT00367627::inc::0",
+      "trialSpan": "The inclusion criteria are",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::inc::1",
+      "nctId": "NCT00367627",
+      "text": "age of the child is 2-5 years old,",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": "5 years"
+     },
+     "raw": {
+      "confidence": 0.9995,
+      "criterionId": "NCT00367627::inc::1",
+      "trialSpan": "age of the child is 2-5 years old,",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9995,
+      "criterionId": "NCT00367627::inc::1",
+      "trialSpan": "age of the child is 2-5 years old,",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::inc::2",
+      "nctId": "NCT00367627",
+      "text": "he/she has not been suffering from serious chronic illness,",
+      "criterionType": "inclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.5732,
+      "criterionId": "NCT00367627::inc::2",
+      "trialSpan": "he/she has not been suffering from serious chronic illness,",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.5732,
+      "criterionId": "NCT00367627::inc::2",
+      "trialSpan": "he/she has not been suffering from serious chronic illness,",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::inc::3",
+      "nctId": "NCT00367627",
+      "text": "the child stool test must be positive for STH,",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9902,
+      "criterionId": "NCT00367627::inc::3",
+      "trialSpan": "the child stool test must be positive for STH,",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9902,
+      "criterionId": "NCT00367627::inc::3",
+      "trialSpan": "the child stool test must be positive for STH,",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::inc::4",
+      "nctId": "NCT00367627",
+      "text": "he/she had not been taken any antehelminthic drug in the previous six months, 5. parents/guardian are agree for their child participation in the study. e",
+      "criterionType": "inclusion",
+      "negation": true,
+      "temporal": "six months"
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT00367627::inc::4",
+      "trialSpan": "he/she had not been taken any antehelminthic drug in the previous six months, 5. parents/guardian are agree for their child participation in the study. e",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT00367627::inc::4",
+      "trialSpan": "he/she had not been taken any antehelminthic drug in the previous six months, 5. parents/guardian are agree for their child participation in the study. e",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::exc::0",
+      "nctId": "NCT00367627",
+      "text": "age of the child less than 2 years old",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "less than 2 years"
+     },
+     "raw": {
+      "confidence": 0.9995,
+      "criterionId": "NCT00367627::exc::0",
+      "trialSpan": "age of the child less than 2 years old",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9995,
+      "criterionId": "NCT00367627::exc::0",
+      "trialSpan": "age of the child less than 2 years old",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::exc::1",
+      "nctId": "NCT00367627",
+      "text": "more than 5 years old,",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "more than 5 years"
+     },
+     "raw": {
+      "confidence": 0.999,
+      "criterionId": "NCT00367627::exc::1",
+      "trialSpan": "more than 5 years old,",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.999,
+      "criterionId": "NCT00367627::exc::1",
+      "trialSpan": "more than 5 years old,",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::exc::2",
+      "nctId": "NCT00367627",
+      "text": "his/her stool test negative for any intestinal helminth,",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.5811,
+      "criterionId": "NCT00367627::exc::2",
+      "trialSpan": "his/her stool test negative for any intestinal helminth,",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.5811,
+      "criterionId": "NCT00367627::exc::2",
+      "trialSpan": "his/her stool test negative for any intestinal helminth,",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::exc::3",
+      "nctId": "NCT00367627",
+      "text": "he/she has been suffering from serious chronic illness,",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.5615,
+      "criterionId": "NCT00367627::exc::3",
+      "trialSpan": "he/she has been suffering from serious chronic illness,",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.5615,
+      "criterionId": "NCT00367627::exc::3",
+      "trialSpan": "he/she has been suffering from serious chronic illness,",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::exc::4",
+      "nctId": "NCT00367627",
+      "text": "parents/guardian are not willing to give consent for their child's participation in the study,",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9673,
+      "criterionId": "NCT00367627::exc::4",
+      "trialSpan": "parents/guardian are not willing to give consent for their child's participation in the study,",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9673,
+      "criterionId": "NCT00367627::exc::4",
+      "trialSpan": "parents/guardian are not willing to give consent for their child's participation in the study,",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT00367627::exc::5",
+      "nctId": "NCT00367627",
+      "text": "if he/she receives any antehelminthic drug after survey but before the study interventions",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.8115,
+      "criterionId": "NCT00367627::exc::5",
+      "trialSpan": "if he/she receives any antehelminthic drug after survey but before the study interventions",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8115,
+      "criterionId": "NCT00367627::exc::5",
+      "trialSpan": "if he/she receives any antehelminthic drug after survey but before the study interventions",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": -6.919526135543766,
+   "missingInfo": [
+    "NCT00367627::inc::4"
+   ],
+   "parseMs": 0,
+   "matchMs": 31162,
+   "calledVia": "match.match()"
+  },
+  {
+   "nctId": "NCT01102322",
+   "title": "Factors Associated With the Use of Lung Protective Ventilation Strategy (LPV) in Acute Lung Injury/Acute Respiratory Distress Syndrome (ALI/ARDS) Patients in Intensive Care Unit (ICU)",
+   "condition": "",
+   "retrievalScore": 0.06239155128023946,
+   "retrieverBreakdown": {
+    "hybrid": 0.06239155128023946,
+    "rerank": -4.763212203979492
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::inc::0",
+      "nctId": "NCT01102322",
+      "text": "All intubated",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9985,
+      "criterionId": "NCT01102322::inc::0",
+      "trialSpan": "All intubated",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9985,
+      "criterionId": "NCT01102322::inc::0",
+      "trialSpan": "All intubated",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::inc::1",
+      "nctId": "NCT01102322",
+      "text": "mechanically ventilated patients who meet the criteria of American-European Consensus Conference (AECC) criteria for ALI/ ARDS",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT01102322::inc::1",
+      "trialSpan": "mechanically ventilated patients who meet the criteria of American-European Consensus Conference (AECC) criteria for ALI/ ARDS",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT01102322::inc::1",
+      "trialSpan": "mechanically ventilated patients who meet the criteria of American-European Consensus Conference (AECC) criteria for ALI/ ARDS",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::inc::2",
+      "nctId": "NCT01102322",
+      "text": "Acute onset of illness",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9614,
+      "criterionId": "NCT01102322::inc::2",
+      "trialSpan": "Acute onset of illness",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9614,
+      "criterionId": "NCT01102322::inc::2",
+      "trialSpan": "Acute onset of illness",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::inc::3",
+      "nctId": "NCT01102322",
+      "text": "Bilateral (patchy, diffuse",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9766,
+      "criterionId": "NCT01102322::inc::3",
+      "trialSpan": "Bilateral (patchy, diffuse",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9766,
+      "criterionId": "NCT01102322::inc::3",
+      "trialSpan": "Bilateral (patchy, diffuse",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::inc::4",
+      "nctId": "NCT01102322",
+      "text": "homogeneous) infiltrates consistent with pulmonary edema",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9668,
+      "criterionId": "NCT01102322::inc::4",
+      "trialSpan": "homogeneous) infiltrates consistent with pulmonary edema",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9668,
+      "criterionId": "NCT01102322::inc::4",
+      "trialSpan": "homogeneous) infiltrates consistent with pulmonary edema",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::inc::5",
+      "nctId": "NCT01102322",
+      "text": "PaO2/FiO2 <=300 (corrected for altitude): (P/F <300 for ALI",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT01102322::inc::5",
+      "trialSpan": "PaO2/FiO2 <=300 (corrected for altitude): (P/F <300 for ALI",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT01102322::inc::5",
+      "trialSpan": "PaO2/FiO2 <=300 (corrected for altitude): (P/F <300 for ALI",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::inc::6",
+      "nctId": "NCT01102322",
+      "text": "P/F <200 for ARDS) No clinical evidence of left atrial hypertension",
+      "criterionType": "inclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.8315,
+      "criterionId": "NCT01102322::inc::6",
+      "trialSpan": "P/F <200 for ARDS) No clinical evidence of left atrial hypertension",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8315,
+      "criterionId": "NCT01102322::inc::6",
+      "trialSpan": "P/F <200 for ARDS) No clinical evidence of left atrial hypertension",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::exc::0",
+      "nctId": "NCT01102322",
+      "text": "Age <18 years",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "18 years"
+     },
+     "raw": {
+      "confidence": 0.998,
+      "criterionId": "NCT01102322::exc::0",
+      "trialSpan": "Age <18 years",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.998,
+      "criterionId": "NCT01102322::exc::0",
+      "trialSpan": "Age <18 years",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::exc::1",
+      "nctId": "NCT01102322",
+      "text": "Enrolled in other clinical trials",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT01102322::exc::1",
+      "trialSpan": "Enrolled in other clinical trials",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT01102322::exc::1",
+      "trialSpan": "Enrolled in other clinical trials",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::exc::2",
+      "nctId": "NCT01102322",
+      "text": "Had confirmed alternative diagnoses that would have different clinical course than ARDS/ALI, e.g., diffuse alveolar hemorrhage, vasculitis, interstitial pneumonitis, Congestive heart failure related pulmonary edema",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT01102322::exc::2",
+      "trialSpan": "Had confirmed alternative diagnoses that would have different clinical course than ARDS/ALI, e.g., diffuse alveolar hemorrhage, vasculitis, interstitial pneumonitis, Congestive heart failure related pulmonary edema",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT01102322::exc::2",
+      "trialSpan": "Had confirmed alternative diagnoses that would have different clinical course than ARDS/ALI, e.g., diffuse alveolar hemorrhage, vasculitis, interstitial pneumonitis, Congestive heart failure related pulmonary edema",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::exc::3",
+      "nctId": "NCT01102322",
+      "text": "Acute myocardial infarction",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9971,
+      "criterionId": "NCT01102322::exc::3",
+      "trialSpan": "Acute myocardial infarction",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9971,
+      "criterionId": "NCT01102322::exc::3",
+      "trialSpan": "Acute myocardial infarction",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::exc::4",
+      "nctId": "NCT01102322",
+      "text": "Pregnancy",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9985,
+      "criterionId": "NCT01102322::exc::4",
+      "trialSpan": "Pregnancy",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9985,
+      "criterionId": "NCT01102322::exc::4",
+      "trialSpan": "Pregnancy",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::exc::5",
+      "nctId": "NCT01102322",
+      "text": "Patients with definite contraindication to the use of low-tidal volume ventilation, e.g., increased intracranial pressure, tricyclic antidepressant overdose, etc",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.894,
+      "criterionId": "NCT01102322::exc::5",
+      "trialSpan": "Patients with definite contraindication to the use of low-tidal volume ventilation, e.g., increased intracranial pressure, tricyclic antidepressant overdose, etc",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.894,
+      "criterionId": "NCT01102322::exc::5",
+      "trialSpan": "Patients with definite contraindication to the use of low-tidal volume ventilation, e.g., increased intracranial pressure, tricyclic antidepressant overdose, etc",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT01102322::exc::6",
+      "nctId": "NCT01102322",
+      "text": "The patient who meets inclusion criteria initially but rapidly improved within 24 hours of diagnosis of ARDS/ALI",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "within 24 hours"
+     },
+     "raw": {
+      "confidence": 0.9351,
+      "criterionId": "NCT01102322::exc::6",
+      "trialSpan": "The patient who meets inclusion criteria initially but rapidly improved within 24 hours of diagnosis of ARDS/ALI",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9351,
+      "criterionId": "NCT01102322::exc::6",
+      "trialSpan": "The patient who meets inclusion criteria initially but rapidly improved within 24 hours of diagnosis of ARDS/ALI",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": -7.937608448719761,
+   "missingInfo": [
+    "NCT01102322::inc::1",
+    "NCT01102322::inc::5",
+    "NCT01102322::exc::1",
+    "NCT01102322::exc::2"
+   ],
+   "parseMs": 0,
+   "matchMs": 41256,
+   "calledVia": "match.match()"
+  },
+  {
+   "nctId": "NCT02881814",
+   "title": "UltraSound for Accurate Decisions in Chest PhysioTherapy",
+   "condition": "",
+   "retrievalScore": 0.053886196450373125,
+   "retrieverBreakdown": {
+    "hybrid": 0.053886196450373125,
+    "rerank": -8.477596282958984
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::inc::0",
+      "nctId": "NCT02881814",
+      "text": "Hypoxemia(SpO2/FiO2< 315 (15))(indication for chest physiotherapy)(cf. annexe 1) Medical prescription for chest physiotherapy",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::inc::0",
+      "trialSpan": "Hypoxemia(SpO2/FiO2< 315 (15))(indication for chest physiotherapy)(cf. annexe 1) Medical prescription for chest physiotherapy",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::inc::0",
+      "trialSpan": "Hypoxemia(SpO2/FiO2< 315 (15))(indication for chest physiotherapy)(cf. annexe 1) Medical prescription for chest physiotherapy",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::inc::1",
+      "nctId": "NCT02881814",
+      "text": "First session of chest physiotherapy",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.8301,
+      "criterionId": "NCT02881814::inc::1",
+      "trialSpan": "First session of chest physiotherapy",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8301,
+      "criterionId": "NCT02881814::inc::1",
+      "trialSpan": "First session of chest physiotherapy",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::inc::2",
+      "nctId": "NCT02881814",
+      "text": "Chest X-ray<12h available",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::inc::2",
+      "trialSpan": "Chest X-ray<12h available",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::inc::2",
+      "trialSpan": "Chest X-ray<12h available",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::inc::3",
+      "nctId": "NCT02881814",
+      "text": "Physiotherapist/operator qualified in LUS available",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::inc::3",
+      "trialSpan": "Physiotherapist/operator qualified in LUS available",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::inc::3",
+      "trialSpan": "Physiotherapist/operator qualified in LUS available",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::inc::4",
+      "nctId": "NCT02881814",
+      "text": "Patient's consent",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9663,
+      "criterionId": "NCT02881814::inc::4",
+      "trialSpan": "Patient's consent",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9663,
+      "criterionId": "NCT02881814::inc::4",
+      "trialSpan": "Patient's consent",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::0",
+      "nctId": "NCT02881814",
+      "text": "Presence of a contra-indication for chest physiotherapy",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.7695,
+      "criterionId": "NCT02881814::exc::0",
+      "trialSpan": "Presence of a contra-indication for chest physiotherapy",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.7695,
+      "criterionId": "NCT02881814::exc::0",
+      "trialSpan": "Presence of a contra-indication for chest physiotherapy",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::1",
+      "nctId": "NCT02881814",
+      "text": "Absence of hypoxemia",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.998,
+      "criterionId": "NCT02881814::exc::1",
+      "trialSpan": "Absence of hypoxemia",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.998,
+      "criterionId": "NCT02881814::exc::1",
+      "trialSpan": "Absence of hypoxemia",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::2",
+      "nctId": "NCT02881814",
+      "text": "Absence of a prescription for chest physiotherapy",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.5869,
+      "criterionId": "NCT02881814::exc::2",
+      "trialSpan": "Absence of a prescription for chest physiotherapy",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.5869,
+      "criterionId": "NCT02881814::exc::2",
+      "trialSpan": "Absence of a prescription for chest physiotherapy",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::3",
+      "nctId": "NCT02881814",
+      "text": "Absence of a chest X-ray < 12h from the time of physiotherapy assessment",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9956,
+      "criterionId": "NCT02881814::exc::3",
+      "trialSpan": "Absence of a chest X-ray < 12h from the time of physiotherapy assessment",
+      "patientSpan": "A chest x-ray shows bilateral lung infiltrates.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9956,
+      "criterionId": "NCT02881814::exc::3",
+      "trialSpan": "Absence of a chest X-ray < 12h from the time of physiotherapy assessment",
+      "patientSpan": "A chest x-ray shows bilateral lung infiltrates.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::4",
+      "nctId": "NCT02881814",
+      "text": "Physiotherapist/operator qualified in LUS not available",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.5327,
+      "criterionId": "NCT02881814::exc::4",
+      "trialSpan": "Physiotherapist/operator qualified in LUS not available",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.5327,
+      "criterionId": "NCT02881814::exc::4",
+      "trialSpan": "Physiotherapist/operator qualified in LUS not available",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::5",
+      "nctId": "NCT02881814",
+      "text": "Lung",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.8262,
+      "criterionId": "NCT02881814::exc::5",
+      "trialSpan": "Lung",
+      "patientSpan": "A chest x-ray shows bilateral lung infiltrates.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8262,
+      "criterionId": "NCT02881814::exc::5",
+      "trialSpan": "Lung",
+      "patientSpan": "A chest x-ray shows bilateral lung infiltrates.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::6",
+      "nctId": "NCT02881814",
+      "text": "diaphragm US not possible (surgical emphysema, dressing, scarring, drains etc.)",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.7515,
+      "criterionId": "NCT02881814::exc::6",
+      "trialSpan": "diaphragm US not possible (surgical emphysema, dressing, scarring, drains etc.)",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.7515,
+      "criterionId": "NCT02881814::exc::6",
+      "trialSpan": "diaphragm US not possible (surgical emphysema, dressing, scarring, drains etc.)",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::7",
+      "nctId": "NCT02881814",
+      "text": "Refusal of the patient",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9976,
+      "criterionId": "NCT02881814::exc::7",
+      "trialSpan": "Refusal of the patient",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9976,
+      "criterionId": "NCT02881814::exc::7",
+      "trialSpan": "Refusal of the patient",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::8",
+      "nctId": "NCT02881814",
+      "text": "a relative to participate in the study",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::exc::8",
+      "trialSpan": "a relative to participate in the study",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::exc::8",
+      "trialSpan": "a relative to participate in the study",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::9",
+      "nctId": "NCT02881814",
+      "text": "Patients to be discharged on the day of the study",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.998,
+      "criterionId": "NCT02881814::exc::9",
+      "trialSpan": "Patients to be discharged on the day of the study",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.998,
+      "criterionId": "NCT02881814::exc::9",
+      "trialSpan": "Patients to be discharged on the day of the study",
+      "patientSpan": "On examination he is in respiratory distress and has bronchial respiratory sounds on the left.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::10",
+      "nctId": "NCT02881814",
+      "text": "Patients in palliative care",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::exc::10",
+      "trialSpan": "Patients in palliative care",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT02881814::exc::10",
+      "trialSpan": "Patients in palliative care",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT02881814::exc::11",
+      "nctId": "NCT02881814",
+      "text": "Withdrawal/limitations of medical care with impending death",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9971,
+      "criterionId": "NCT02881814::exc::11",
+      "trialSpan": "Withdrawal/limitations of medical care with impending death",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9971,
+      "criterionId": "NCT02881814::exc::11",
+      "trialSpan": "Withdrawal/limitations of medical care with impending death",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": -11.946113803549627,
+   "missingInfo": [
+    "NCT02881814::inc::0",
+    "NCT02881814::inc::2",
+    "NCT02881814::inc::3",
+    "NCT02881814::exc::8",
+    "NCT02881814::exc::10"
+   ],
+   "parseMs": 0,
+   "matchMs": 46462,
+   "calledVia": "match.match()"
+  },
+  {
+   "nctId": "NCT03299322",
+   "title": "A Study to Assess Jia Wei Yang He Formula as a Plus Therapy in the Treatment of Persistent Asthma",
+   "condition": "",
+   "retrievalScore": 0.16477989359407424,
+   "retrieverBreakdown": {
+    "hybrid": 0.16477989359407424,
+    "rerank": -7.243416786193848
+   },
+   "rows": [
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::inc::0",
+      "nctId": "NCT03299322",
+      "text": "Patient diagnosed with chronic persistent asthma",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::inc::0",
+      "trialSpan": "Patient diagnosed with chronic persistent asthma",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::inc::0",
+      "trialSpan": "Patient diagnosed with chronic persistent asthma",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::inc::1",
+      "nctId": "NCT03299322",
+      "text": "Annual uncontrollable time \u2265 3 months",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": "\u2265 3 months"
+     },
+     "raw": {
+      "confidence": 0.8755,
+      "criterionId": "NCT03299322::inc::1",
+      "trialSpan": "Annual uncontrollable time \u2265 3 months",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8755,
+      "criterionId": "NCT03299322::inc::1",
+      "trialSpan": "Annual uncontrollable time \u2265 3 months",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::inc::2",
+      "nctId": "NCT03299322",
+      "text": "Patients who have given written informed consent",
+      "criterionType": "inclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::inc::2",
+      "trialSpan": "Patients who have given written informed consent",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::inc::2",
+      "trialSpan": "Patients who have given written informed consent",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "inclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::0",
+      "nctId": "NCT03299322",
+      "text": "History of upper upper/lower respiratory infection in the previous 1 months",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "1 months; History of"
+     },
+     "raw": {
+      "confidence": 0.9844,
+      "criterionId": "NCT03299322::exc::0",
+      "trialSpan": "History of upper upper/lower respiratory infection in the previous 1 months",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9844,
+      "criterionId": "NCT03299322::exc::0",
+      "trialSpan": "History of upper upper/lower respiratory infection in the previous 1 months",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::1",
+      "nctId": "NCT03299322",
+      "text": "History of long-term controller medication use for asthma (oral corticosteroid",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::1",
+      "trialSpan": "History of long-term controller medication use for asthma (oral corticosteroid",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::1",
+      "trialSpan": "History of long-term controller medication use for asthma (oral corticosteroid",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::2",
+      "nctId": "NCT03299322",
+      "text": "intravenous corticosteroids therapy) within the preceding 1 months",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "preceding 1 months"
+     },
+     "raw": {
+      "confidence": 0.8706,
+      "criterionId": "NCT03299322::exc::2",
+      "trialSpan": "intravenous corticosteroids therapy) within the preceding 1 months",
+      "patientSpan": "He has just returned from a 5 day vacation in Colorado.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8706,
+      "criterionId": "NCT03299322::exc::2",
+      "trialSpan": "intravenous corticosteroids therapy) within the preceding 1 months",
+      "patientSpan": "He has just returned from a 5 day vacation in Colorado.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::3",
+      "nctId": "NCT03299322",
+      "text": "History of antibiotic use in the previous 1 months",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "1 months; History of"
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::3",
+      "trialSpan": "History of antibiotic use in the previous 1 months",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::3",
+      "trialSpan": "History of antibiotic use in the previous 1 months",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::4",
+      "nctId": "NCT03299322",
+      "text": "History of life-threatening asthma",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::4",
+      "trialSpan": "History of life-threatening asthma",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::4",
+      "trialSpan": "History of life-threatening asthma",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::5",
+      "nctId": "NCT03299322",
+      "text": "History of chronic lung diseases other than asthma, including but not limited to chronic obstructive pulmonary disease, bronchiectasis, emphysema, tuberculosis, sarcoidosis, pulmonary fibrosis, lung cancer, etc",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.896,
+      "criterionId": "NCT03299322::exc::5",
+      "trialSpan": "History of chronic lung diseases other than asthma, including but not limited to chronic obstructive pulmonary disease, bronchiectasis, emphysema, tuberculosis, sarcoidosis, pulmonary fibrosis, lung cancer, etc",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.896,
+      "criterionId": "NCT03299322::exc::5",
+      "trialSpan": "History of chronic lung diseases other than asthma, including but not limited to chronic obstructive pulmonary disease, bronchiectasis, emphysema, tuberculosis, sarcoidosis, pulmonary fibrosis, lung cancer, etc",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::6",
+      "nctId": "NCT03299322",
+      "text": "History of serious disease of the heart",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::6",
+      "trialSpan": "History of serious disease of the heart",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::6",
+      "trialSpan": "History of serious disease of the heart",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::7",
+      "nctId": "NCT03299322",
+      "text": "History of serious disease of the cerebrovascular disease",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.5234,
+      "criterionId": "NCT03299322::exc::7",
+      "trialSpan": "History of serious disease of the cerebrovascular disease",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.5234,
+      "criterionId": "NCT03299322::exc::7",
+      "trialSpan": "History of serious disease of the cerebrovascular disease",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::8",
+      "nctId": "NCT03299322",
+      "text": "History of severe liver",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.9502,
+      "criterionId": "NCT03299322::exc::8",
+      "trialSpan": "History of severe liver",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9502,
+      "criterionId": "NCT03299322::exc::8",
+      "trialSpan": "History of severe liver",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::9",
+      "nctId": "NCT03299322",
+      "text": "History of renal dysfunction",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.9224,
+      "criterionId": "NCT03299322::exc::9",
+      "trialSpan": "History of renal dysfunction",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9224,
+      "criterionId": "NCT03299322::exc::9",
+      "trialSpan": "History of renal dysfunction",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::10",
+      "nctId": "NCT03299322",
+      "text": "History of disease",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.8594,
+      "criterionId": "NCT03299322::exc::10",
+      "trialSpan": "History of disease",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8594,
+      "criterionId": "NCT03299322::exc::10",
+      "trialSpan": "History of disease",
+      "patientSpan": "Parents report that prior to the onset of fever and cough, he had loose stools.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::11",
+      "nctId": "NCT03299322",
+      "text": "History of severe disease in the hematopoietic system",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.9497,
+      "criterionId": "NCT03299322::exc::11",
+      "trialSpan": "History of severe disease in the hematopoietic system",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9497,
+      "criterionId": "NCT03299322::exc::11",
+      "trialSpan": "History of severe disease in the hematopoietic system",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::12",
+      "nctId": "NCT03299322",
+      "text": "History of immunodeficiency (including, but not limited to, HIV positive detection",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.9224,
+      "criterionId": "NCT03299322::exc::12",
+      "trialSpan": "History of immunodeficiency (including, but not limited to, HIV positive detection",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9224,
+      "criterionId": "NCT03299322::exc::12",
+      "trialSpan": "History of immunodeficiency (including, but not limited to, HIV positive detection",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::13",
+      "nctId": "NCT03299322",
+      "text": "other acquired",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::13",
+      "trialSpan": "other acquired",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::13",
+      "trialSpan": "other acquired",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::14",
+      "nctId": "NCT03299322",
+      "text": "congenital immunodeficiency disease",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::14",
+      "trialSpan": "congenital immunodeficiency disease",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::14",
+      "trialSpan": "congenital immunodeficiency disease",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::15",
+      "nctId": "NCT03299322",
+      "text": "organ transplant history) History of any other condition (such as known drug",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.9761,
+      "criterionId": "NCT03299322::exc::15",
+      "trialSpan": "organ transplant history) History of any other condition (such as known drug",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9761,
+      "criterionId": "NCT03299322::exc::15",
+      "trialSpan": "organ transplant history) History of any other condition (such as known drug",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::16",
+      "nctId": "NCT03299322",
+      "text": "alcohol abuse",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9976,
+      "criterionId": "NCT03299322::exc::16",
+      "trialSpan": "alcohol abuse",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9976,
+      "criterionId": "NCT03299322::exc::16",
+      "trialSpan": "alcohol abuse",
+      "patientSpan": "An 8-year-old male presents in March to the ER with fever up to 39 C, dyspnea and cough for 2 days.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::17",
+      "nctId": "NCT03299322",
+      "text": "psychiatric disorder) which, in the opinion of the investigator, may preclude the patient from following",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9546,
+      "criterionId": "NCT03299322::exc::17",
+      "trialSpan": "psychiatric disorder) which, in the opinion of the investigator, may preclude the patient from following",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9546,
+      "criterionId": "NCT03299322::exc::17",
+      "trialSpan": "psychiatric disorder) which, in the opinion of the investigator, may preclude the patient from following",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::18",
+      "nctId": "NCT03299322",
+      "text": "completing the protocol",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9282,
+      "criterionId": "NCT03299322::exc::18",
+      "trialSpan": "completing the protocol",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9282,
+      "criterionId": "NCT03299322::exc::18",
+      "trialSpan": "completing the protocol",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::19",
+      "nctId": "NCT03299322",
+      "text": "Are currently enrolled in",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "currently"
+     },
+     "raw": {
+      "confidence": 0.9438,
+      "criterionId": "NCT03299322::exc::19",
+      "trialSpan": "Are currently enrolled in",
+      "patientSpan": "He has just returned from a 5 day vacation in Colorado.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9438,
+      "criterionId": "NCT03299322::exc::19",
+      "trialSpan": "Are currently enrolled in",
+      "patientSpan": "He has just returned from a 5 day vacation in Colorado.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::20",
+      "nctId": "NCT03299322",
+      "text": "discontinued within the last 30 days from, a clinical trial involving an investigational product",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "within the last 30 days"
+     },
+     "raw": {
+      "confidence": 0.8496,
+      "criterionId": "NCT03299322::exc::20",
+      "trialSpan": "discontinued within the last 30 days from, a clinical trial involving an investigational product",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8496,
+      "criterionId": "NCT03299322::exc::20",
+      "trialSpan": "discontinued within the last 30 days from, a clinical trial involving an investigational product",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::21",
+      "nctId": "NCT03299322",
+      "text": "non-approved use of a drug",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9775,
+      "criterionId": "NCT03299322::exc::21",
+      "trialSpan": "non-approved use of a drug",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9775,
+      "criterionId": "NCT03299322::exc::21",
+      "trialSpan": "non-approved use of a drug",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::22",
+      "nctId": "NCT03299322",
+      "text": "device (other than the investigational product used in this study)",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::22",
+      "trialSpan": "device (other than the investigational product used in this study)",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::22",
+      "trialSpan": "device (other than the investigational product used in this study)",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::23",
+      "nctId": "NCT03299322",
+      "text": "concurrently enrolled in any other type of medical research judged not to be scientifically",
+      "criterionType": "exclusion",
+      "negation": true,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9595,
+      "criterionId": "NCT03299322::exc::23",
+      "trialSpan": "concurrently enrolled in any other type of medical research judged not to be scientifically",
+      "patientSpan": "He has just returned from a 5 day vacation in Colorado.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9595,
+      "criterionId": "NCT03299322::exc::23",
+      "trialSpan": "concurrently enrolled in any other type of medical research judged not to be scientifically",
+      "patientSpan": "He has just returned from a 5 day vacation in Colorado.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::24",
+      "nctId": "NCT03299322",
+      "text": "medically compatible with this study",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9819,
+      "criterionId": "NCT03299322::exc::24",
+      "trialSpan": "medically compatible with this study",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9819,
+      "criterionId": "NCT03299322::exc::24",
+      "trialSpan": "medically compatible with this study",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::25",
+      "nctId": "NCT03299322",
+      "text": "History of allergies to the component of the investigated drugs",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": "History of"
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::25",
+      "trialSpan": "History of allergies to the component of the investigated drugs",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::25",
+      "trialSpan": "History of allergies to the component of the investigated drugs",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::26",
+      "nctId": "NCT03299322",
+      "text": "Smoking within the past year",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::26",
+      "trialSpan": "Smoking within the past year",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::26",
+      "trialSpan": "Smoking within the past year",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::27",
+      "nctId": "NCT03299322",
+      "text": "Contraindication to induced sputum collection method on history",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::27",
+      "trialSpan": "Contraindication to induced sputum collection method on history",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::27",
+      "trialSpan": "Contraindication to induced sputum collection method on history",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::28",
+      "nctId": "NCT03299322",
+      "text": "Contraindication to induced sputum collection method on examination",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.8218,
+      "criterionId": "NCT03299322::exc::28",
+      "trialSpan": "Contraindication to induced sputum collection method on examination",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.8218,
+      "criterionId": "NCT03299322::exc::28",
+      "trialSpan": "Contraindication to induced sputum collection method on examination",
+      "patientSpan": "The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::29",
+      "nctId": "NCT03299322",
+      "text": "Any serious medical condition which, in the opinion of the Investigator, would pose a significant risk to the patient",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::29",
+      "trialSpan": "Any serious medical condition which, in the opinion of the Investigator, would pose a significant risk to the patient",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::29",
+      "trialSpan": "Any serious medical condition which, in the opinion of the Investigator, would pose a significant risk to the patient",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::30",
+      "nctId": "NCT03299322",
+      "text": "interfere with the interpretation of safety, efficacy",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::30",
+      "trialSpan": "interfere with the interpretation of safety, efficacy",
+      "patientSpan": null,
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.0,
+      "criterionId": "NCT03299322::exc::30",
+      "trialSpan": "interfere with the interpretation of safety, efficacy",
+      "patientSpan": null,
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "UNKNOWN",
+      "extra": {}
+     },
+     "forced": false
+    },
+    {
+     "criterion": {
+      "criterionId": "NCT03299322::exc::31",
+      "nctId": "NCT03299322",
+      "text": "pharmacodynamic data",
+      "criterionType": "exclusion",
+      "negation": false,
+      "temporal": ""
+     },
+     "raw": {
+      "confidence": 0.9546,
+      "criterionId": "NCT03299322::exc::31",
+      "trialSpan": "pharmacodynamic data",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": false,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "verified": {
+      "confidence": 0.9546,
+      "criterionId": "NCT03299322::exc::31",
+      "trialSpan": "pharmacodynamic data",
+      "patientSpan": "He denies upper respiratory tract symptoms.",
+      "verified": true,
+      "criterionType": "exclusion",
+      "label": "NOT_MET",
+      "extra": {}
+     },
+     "forced": false
+    }
+   ],
+   "score": -13.835220106405925,
+   "missingInfo": [
+    "NCT03299322::inc::0",
+    "NCT03299322::inc::2",
+    "NCT03299322::exc::1",
+    "NCT03299322::exc::3",
+    "NCT03299322::exc::4",
+    "NCT03299322::exc::6",
+    "NCT03299322::exc::13",
+    "NCT03299322::exc::14",
+    "NCT03299322::exc::22",
+    "NCT03299322::exc::25",
+    "NCT03299322::exc::26",
+    "NCT03299322::exc::27",
+    "NCT03299322::exc::29",
+    "NCT03299322::exc::30"
+   ],
+   "parseMs": 1,
+   "matchMs": 98888,
+   "calledVia": "match.match()"
+  }
+ ],
+ "totalMs": 502005,
+ "forcedAbstentions": 0,
+ "label": "sigir-20142 \u00b7 zeroShot",
+ "topicId": "sigir-20142",
+ "source": "cached",
+ "gold": {
+  "NCT02618655": {
+   "patients have fever more than one week": "NOT_MET",
+   "temperature is higher than 38\u2103 Celsius degree": "MET",
+   "full of physical examination and laboratory examination have been carried out after one week\uff0cbut still cannot make a definite diagnosis": "UNKNOWN",
+   "fever for non-infectious diseases such as rheumatic autoimmune disease or with tumor": "NOT_MET",
+   "we find that the patient selected does not meet the selection criteria within the observation period": "UNKNOWN",
+   "patients leave with automatic discharge": "UNKNOWN"
+  },
+  "NCT00711399": {
+   "Patient and/or parents/guardian signed informed consent": "MET",
+   "Patients with cough or shortness of breath": "MET",
+   "Chest tubes": "NOT_MET",
+   "Skin lesions precluding attachment of sensors": "NOT_MET",
+   "Respiratory distress": "MET",
+   "Pregnant women": "UNKNOWN"
+  }
+ },
+ "builtAt": "2026-08-02T03:47:08Z"
+}

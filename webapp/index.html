@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EVI-TRIAL — every decision carries its receipt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Loaded non-blocking: on venue wifi (or none) a render-blocking cross-origin
+     stylesheet stalls the whole page for a font we have local fallbacks for. -->
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="appStyles.css">
+</head>
+<body>
+
+<!-- Charm layer. Hand-drawn icons lifted from the reference deck, drifting behind
+     everything at low opacity. Purely decorative: aria-hidden, pointer-events none,
+     and the content cards are opaque so nothing ever sits behind text.
+     Tune any one of them with the four custom properties on its style attribute:
+     --x/--y where, --s how big, --r tilt, --d animation offset. -->
+<div class="iconField" aria-hidden="true">
+  <img src="assets/icons/ambulance.svg"   alt="" style="--x:14%;--y:5%;--s:74px;--r:-7deg;--d:0s">
+  <img src="assets/icons/plaster.svg"     alt="" style="--x:40%;--y:96%;--s:54px;--r:-20deg;--d:-3s">
+  <img src="assets/icons/scrubs.svg"      alt="" style="--x:79%;--y:14%;--s:60px;--r:10deg;--d:-6s">
+  <img src="assets/icons/stethoscope.svg" alt="" style="--x:93%;--y:6%;--s:72px;--r:12deg;--d:-9s">
+  <img src="assets/icons/capsules.svg"    alt="" style="--x:2%;--y:20%;--s:86px;--r:-14deg;--d:-2s">
+  <img src="assets/icons/pillBottle.svg"  alt="" style="--x:88%;--y:31%;--s:62px;--r:-16deg;--d:-11s">
+  <img src="assets/icons/clipboard.svg"   alt="" style="--x:9%;--y:41%;--s:58px;--r:9deg;--d:-5s">
+  <img src="assets/icons/nurse.svg"       alt="" style="--x:96%;--y:52%;--s:66px;--r:5deg;--d:-14s">
+  <img src="assets/icons/dna.svg"         alt="" style="--x:1%;--y:63%;--s:80px;--r:-8deg;--d:-7s">
+  <img src="assets/icons/testTube.svg"    alt="" style="--x:91%;--y:71%;--s:48px;--r:14deg;--d:-1s">
+  <img src="assets/icons/syringe.svg"     alt="" style="--x:7%;--y:84%;--s:78px;--r:18deg;--d:-12s">
+  <img src="assets/icons/microscope.svg"  alt="" style="--x:31%;--y:93%;--s:66px;--r:7deg;--d:-4s">
+  <img src="assets/icons/heartHands.svg"  alt="" style="--x:67%;--y:90%;--s:76px;--r:-6deg;--d:-8s">
+  <img src="assets/icons/starOfLife.svg"  alt="" style="--x:89%;--y:90%;--s:50px;--r:16deg;--d:-10s">
+  <img src="assets/icons/ivBag.svg"       alt="" style="--x:4%;--y:31%;--s:46px;--r:-11deg;--d:-13s">
+  <img src="assets/icons/dnaCoral.svg"    alt="" style="--x:72%;--y:45%;--s:52px;--r:-15deg;--d:-15s">
+  <img src="assets/icons/chartRed.svg"    alt="" style="--x:20%;--y:66%;--s:54px;--r:12deg;--d:-16s">
+  <img src="assets/icons/pillBottleIndigo.svg" alt="" style="--x:95%;--y:24%;--s:44px;--r:-9deg;--d:-18s">
+</div>
+<!-- Placement rule if you add more: keep y between 18% and 40% clear across the middle
+     (x 10%–90%). That band is where the lede sits on bare cream, and it's the only
+     place on any tab where a doodle would be behind text instead of behind a card. -->
+
+<header class="topbar">
+  <div class="logo"><span class="dot">E</span> EVI&#8209;TRIAL</div>
+  <nav class="tabs" id="tabs" aria-label="Pipeline stages"></nav>
+  <div class="right">
+    <span class="pill off" id="livePill">checking…</span>
+    <button class="btn ghost" id="presentBtn" aria-pressed="false" title="Presenter mode (P)">Present</button>
+  </div>
+</header>
+
+<main id="views">
+  <section class="view" id="view-start"></section>
+  <!-- stage views are injected by appMain.js, one per STAGES entry -->
+  <section class="view" id="view-results"></section>
+  <section class="view" id="view-matchers"></section>
+  <section class="view" id="view-machine"></section>
+</main>
+
+<div class="footHint">
+  <span><kbd>&larr;</kbd> <kbd>&rarr;</kbd> move through tabs &nbsp;·&nbsp;
+        <kbd>P</kbd> presenter mode &nbsp;·&nbsp; <kbd>F</kbd> fullscreen</span>
+  <span class="hideInPresent">verify() is the only thing that sets verified=True</span>
+</div>
+
+<script src="appMain.js"></script>
+</body>
+</html>

@@ -227,7 +227,8 @@ def _boostrapCI(yTrue, yPred, labels, nresamples = 1000, seed = None):
 #         "n": len(valPairs),
 #     }
 
-def criterionMetrics(config: dict, split:str = "val") -> dict:
+def criterionMetrics(config: dict, split:str | None = None) -> dict:
+    split = split or config["splits"].get("evalSplit", "val")
     rows = ingest.loadAnnotations()
     pairs = ingest.toEvalPairs(rows)
     targetPairs = ingest.splitPairs(pairs, config)[split]
@@ -323,7 +324,8 @@ def criterionMetrics(config: dict, split:str = "val") -> dict:
 #         }
 #         return results
 
-def faithfulnessMetrics(config: dict, split:str = "val") -> dict:
+def faithfulnessMetrics(config: dict, split:str | None = None) -> dict:
+    split = split or config["splits"].get("evalSplit", "val")
     rows = ingest.loadAnnotations()
     pairs = ingest.toEvalPairs(rows)
     valPairs = ingest.splitPairs(pairs, config)[split]
@@ -387,7 +389,8 @@ def faithfulnessMetrics(config: dict, split:str = "val") -> dict:
         }
     return results
 
-def abstentionMetrics(config: dict, split:str = "val") -> dict:
+def abstentionMetrics(config: dict, split:str | None = None) -> dict:
+    split = split or config["splits"].get("evalSplit", "val")
     rows = ingest.loadAnnotations()
     pairs = ingest.toEvalPairs(rows)
     valPairs = ingest.splitPairs(pairs, config)[split]
@@ -469,7 +472,8 @@ def _reliability(answered: list[tuple[float, int]], nBins: int = 10) -> dict:
     brier = sum((c - ok) ** 2 for c, ok in answered) / n
     return {"ece": round(ece, 4), "brier": round(brier, 4), "n": n, "bins": bins}
 
-def calibration(config: dict, split: str = "val") -> dict:
+def calibration(config: dict, split: str | None = None) -> dict:
+    split = split or config["splits"].get("evalSplit", "val")
     rows = ingest.loadAnnotations()
     pairs = ingest.toEvalPairs(rows)
     targetPairs = ingest.splitPairs(pairs, config)[split]
@@ -527,7 +531,8 @@ def latency(config: dict, nQueries: int = 3) -> dict:
         },
     }
     
-def gateCalibration(config: dict, split: str = "val") -> dict:
+def gateCalibration(config: dict, split: str | None = None) -> dict:
+    split = split or config["splits"].get("evalSplit", "val")
     rows = ingest.loadAnnotations()
     pairs = ingest.toEvalPairs(rows)
     valPairs = ingest.splitPairs(pairs, config)[split]

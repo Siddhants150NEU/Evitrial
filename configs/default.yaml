@@ -23,11 +23,12 @@ retrieval:
   qdrant:
     location: data/qdrant               # local persisted store (or set host/port)
     collection: trials2021
-
+  
 # ---- matcher (Stage D) -- read by match.py and trainLora.py ----
 matcher:
-  rung: zeroShot                        # rules | zeroShot | lora  (which matcher is active)
-  nliModel: ncbi/MedCPT-Cross-Encoder   # placeholder; swap for your chosen biomedical NLI
+  rung: generative #zeroShot                        # rules | zeroShot | lora  (which matcher is active)
+  # nliModel: ncbi/MedCPT-Cross-Encoder   # placeholder; swap for your chosen biomedical NLI
+  nliModel: MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli
   lora:
     # baseModel: microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract
     # baseModel: pritamdeka/PubMedBERT-MNLI-MedNLI
@@ -38,6 +39,17 @@ matcher:
     epochs: 8
     learningRate: 0.0002
     maxLength: 512
+  generative:
+    provider: ollama
+    cachePath: data/llmCache
+    maxRetries: 3
+    ollama:
+      model: qwen2.5:7b-instruct
+      host: http://localhost:11434
+      timeoutSec: 45
+    claude:
+      model: claude-opus-5
+      maxTokens: 1024
 
 # ---- ranking (Stage F) -- read by rank.aggregate() ----
 # Transparent linear score. Tune here, never hardcode in rank.py.
@@ -54,7 +66,8 @@ splits:
   train: 0.7
   val: 0.15
   test: 0.15
-  useTrainingFlag: false                # true = honour the dataset's own `training` column instead
+  useTrainingFlag: false    
+  evalSplit: test            # true = honour the dataset's own `training` column instead
 
 # ---- data -- dataset ids + expected counts (mirrored in checkIngest.EXPECTED) ----
 data:

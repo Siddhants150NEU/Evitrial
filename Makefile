@@ -3,7 +3,11 @@
 PY ?= python
 
 .DEFAULT_GOAL := help
-.PHONY: help install check check-fast test eval demo clean
+# .PHONY: help install check check-fast test eval demo clean
+PORT ?= 8777
+RUNG ?= generative
+K    ?= 10
+.PHONY: help install check check-fast test eval demo webapp webapp-live webapp-bg webapp-stop cache clean
 
 help: ## Show this help
 	@echo "EVI-TRIAL make targets:"
@@ -35,8 +39,25 @@ test: ## Run the contract invariants (no data / heavy deps needed)
 eval: ## Run the eval harness -> reports/runs/<runId>/
 	$(PY) -m src.eval
 
-demo: ## Launch the minimal Streamlit demo
-	streamlit run src/demo.py
+# demo: ## Launch the minimal Streamlit demo
+# 	streamlit run src/demo.py
+webapp: ## Serve the demo (cached runs only). PORT=8777 by default
+	$(PY) -m webapp.server.serveDemo --port $(PORT)
+
+webapp-live: ## Same, but visitors can run their own notes. Slow — ~10 min a run
+	$(PY) -m webapp.server.serveDemo --port $(PORT) --live
+
+webapp-bg: ## Start it in the background, wait until it answers, open a browser
+	@nohup $(PY) -m webapp.server.serveDemo --port $(PORT) > .webapp.log 2>&1 & echo $$! > .webapp.pid
+	@until curl -sf http://localhost:$(PORT)/api/matchers >/dev/null; do sleep 0.2; done
+	@open http://localhost:$(PORT)
+	@echo "serving http://localhost:$(PORT) (pid $$(cat .webapp.pid)) — make webapp-stop to kill"
+
+webapp-stop: ## Kill the background demo server
+	@kill $$(cat .webapp.pid) 2>/dev/null && rm -f .webapp.pid && echo stopped || echo "not running"
+
+cache: ## Pre-build a demo run: make cache PATIENT=sigir-20142 K=10
+	$(PY) -m webapp.server.runCache --patient $(PATIENT) --rung $(RUNG) --k $(K)
 
 clean: ## Remove Python caches
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +

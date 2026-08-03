@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "demo",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "webapp.server.serveDemo", "--port", "8777"],
+      "port": 8777
+    }
+  ]
+}
