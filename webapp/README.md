@@ -79,8 +79,8 @@ list worth scrolling; `--k 3` if you want it short.
 | **retrieve** | **135,950 ms** |
 | parse | 3 ms |
 | **match** (126 criteria) | **496,712 ms** |
-| verify | measured separately now (was reported as 0) |
-| rank | measured separately now (was reported as 0) |
+| verify | ~1 ms total (4.6 µs per decision, measured) |
+| rank | under 1 ms |
 | **total** | **632,669 ms — 10m 33s** |
 
 Two separate problems, and they need different fixes.
@@ -206,11 +206,55 @@ Two things it handles for you:
   generative rung, `decisionToDict` picks it up via `asdict` and the UI renders it under
   the criterion. No schema duplicated in JavaScript.
 
-**One thing you should expect:** the generative rung is the first one that will
-*paraphrase*, which means it's the first one where `verify()` actually fires. Every
-number on the Verify tab — forced abstentions, supported rate — is currently zero
-because `zeroShot` and `lora` copy spans verbatim. When those numbers stop being zero,
-that's not a regression. That's the whole thesis finally having something to demonstrate.
+### What actually happened when it landed — read this, it changes the talk
+
+The prediction above was **wrong**, and the reason is the interesting part.
+
+`verify()` fired **zero** times on the generative rung too. Not because the model is
+careful, but because `generativeMatch` can't produce an unsupported span *by
+construction*:
+
+```python
+patientSpan = sentences[verdict.sentenceIndices[0]] if verdict.sentenceIndices else None
+```
+
+The LLM returns a sentence **index**, not a quotation. The span is then looked up from
+the note's own sentences, so it is verbatim by definition. Checked empirically across
+all three generative runs: every span present is a verbatim substring of its note. The
+substring test cannot fail here, and no amount of hallucination would change that.
+
+That is a *stronger* claim than the one the gate was built to make. Rather than checking
+a quotation after the fact, `llmContract` makes an unfaithful span **unrepresentable**.
+Constrain the output space instead of validating it afterwards.
+
+**But abstention absolutely is happening — it just moved upstream.** Across the three
+generative runs, `llmContract.checkVerdict` rejected 281 verdicts:
+
+| patient | criteria | UNKNOWN | rejected by contract | model said UNKNOWN itself |
+|---|---|---|---|---|
+| sigir-20141 | 265 | 216 | 106 | 110 |
+| sigir-20142 | 132 | 107 | 85 | 22 |
+| sigir-20143 | 149 | 133 | 90 | 43 |
+
+Rejection reasons, and they are worth reading out loud:
+
+| reason | count | what it means |
+|---|---|---|
+| `wrongCriterion` | 120 | the model answered about a **different criterion** than the one asked |
+| `emptyIndices` | 126 | claimed a label while citing no sentence at all |
+| `emptyRationale` | 56 | no reasoning given |
+| `schemaViolation` | 1 | malformed output |
+
+`wrongCriterion` at ~19% of all calls is the one to chase. `buildPrompt` passes the
+`criterionId` and `checkVerdict` requires it back; `qwen2.5:7b-instruct` echoes the wrong
+one about a fifth of the time. That's prompt adherence, not eligibility reasoning, and it
+is probably the cheapest accuracy win available right now.
+
+**The honest framing for a talk:** two independent mechanisms produce abstention here —
+a schema contract that rejects malformed or off-target verdicts, and a span check that is
+structurally redundant for this rung but still guards the other three. Presenting
+`verify()` as "the thing that catches the LLM" would be wrong. It never caught it,
+because the interface never let it lie about spans.
 
 ---
 

@@ -2,7 +2,11 @@
 
   python -m webapp.server.runCache --list
   python -m webapp.server.runCache --patient sigir-20141 --k 10
-  python -m webapp.server.runCache --patient sigir-20141 --patient sigir-20142 --k 10
+  python -m webapp.server.runCache --patient sigir-20141 --patient sigir-20142 \
+                                   --rung lora --rung generative --k 10
+
+BOTH FLAGS REPEAT and every rung runs against every patient, so the example above is
+4 runs in one process.
 
 EACH PATIENT GETS ITS OWN CACHE FILE, always — one run, one file, independently
 selectable in the UI. But pass them to ONE invocation rather than launching a process
@@ -78,9 +82,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="pre-compute demo runs")
     ap.add_argument("--patient", action="append", help="patient id, repeatable")
     ap.add_argument("--list", action="store_true", help="show patient ids and exit")
-    ap.add_argument("--rung", default="zeroShot")
+    ap.add_argument("--rung", action="append",
+                    help="matcher rung, repeatable. every rung runs against every "
+                         "patient, all in this one process so the index is shared.")
     ap.add_argument("--k", type=int, default=10, help="trials per note. keep this small.")
     args = ap.parse_args()
+    rungs = args.rung or ["zeroShot"]
 
     people = loadPatients()
     if args.list:
@@ -95,12 +102,19 @@ def main() -> None:
 
     config = loadConfig()
     setSeeds(config["seed"])
-    for pid in wanted:
-        if pid not in people:
-            print(f"  ! no patient {pid!r}, skipping")
-            continue
-        buildOne(pid, people[pid]["note"], config, args.rung, args.k,
-                 gold=people[pid]["gold"])
+    todo = [(p, r) for r in rungs for p in wanted if p in people]
+    for pid in [p for p in wanted if p not in people]:
+        print(f"  ! no patient {pid!r}, skipping")
+    print(f"  {len(todo)} run(s) queued: {len(wanted)} patient(s) x {len(rungs)} rung(s)\n")
+
+    for n, (pid, rung) in enumerate(todo, start=1):
+        print(f"  [{n}/{len(todo)}]", end=" ")
+        try:
+            buildOne(pid, people[pid]["note"], config, rung, args.k,
+                     gold=people[pid]["gold"])
+        except Exception as exc:
+            # One bad rung shouldn't cost you the rest of a two-hour queue.
+            print(f"  ! {pid} @ {rung} failed: {type(exc).__name__}: {exc}\n", flush=True)
 
 def _size(p: Path) -> str:
     kb = p.stat().st_size / 1024

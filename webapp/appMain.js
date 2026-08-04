@@ -670,10 +670,25 @@ function critRow(r, goldForTrial) {
 /* Anything the Decision dataclass grows later — a `rationale` from the generative
    rung, say — lands here automatically instead of being dropped on the floor. */
 function renderExtra(extra) {
-  if (!extra || !Object.keys(extra).length) return "";
-  return `<div class="span" style="margin-top:5px;background:var(--sky-wash)">` +
-    Object.entries(extra).map(([k, v]) =>
-      `<b>${esc(k)}</b> ${esc(typeof v === "object" ? JSON.stringify(v) : v)}`).join("<br>") + `</div>`;
+  if (!extra) return "";
+  // Drop empties: an absent `failures` shouldn't draw an empty box on every row.
+  const rows = Object.entries(extra).filter(([, v]) =>
+    Array.isArray(v) ? v.length : v !== null && v !== undefined && v !== "");
+  if (!rows.length) return "";
+
+  return rows.map(([k, v]) => {
+    // A list of strings is a list, not a JSON blob. `failures` from the generative
+    // rung is the interesting case: it's the llmContract check explaining exactly why
+    // a verdict was rejected, which is the most quotable output in the whole run.
+    if (Array.isArray(v) && v.every((x) => typeof x === "string")) {
+      const bad = k === "failures";
+      return `<div class="span ${bad ? "bad" : ""}" style="margin-top:5px">
+        <b>${esc(bad ? "contract failures" : k)}</b>
+        ${v.map((x) => `<div style="margin-top:3px">· ${esc(x)}</div>`).join("")}</div>`;
+    }
+    return `<div class="span" style="margin-top:5px;background:var(--sky-wash)">
+      <b>${esc(k)}</b> ${esc(typeof v === "object" ? JSON.stringify(v) : v)}</div>`;
+  }).join("");
 }
 
 /* ---------- matchers tab -------------------------------------------------- */

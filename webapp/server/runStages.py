@@ -80,7 +80,7 @@ def runNote(note: str, config: dict, rung: str, k: int, onStage=None) -> dict:
 
     # ---- 03-06, per candidate trial ----------------------------------------------
     perTrial, allParsed, allRaw, allVerified = [], [], [], []
-    rankMs = 0
+    rankSec = 0.0
     for cand in candidates:
         trial = trials.get(cand.nctId)
         if trial is None:                       # retrieval found an id fetch couldn't
@@ -94,7 +94,11 @@ def runNote(note: str, config: dict, rung: str, k: int, onStage=None) -> dict:
         })
 
         rows, checkedForTrial, calledVia = [], [], None
-        matchMs = verifyMs = 0
+        # Accumulate in float seconds and round ONCE at the end. Rounding to whole
+        # milliseconds per criterion floors verify()'s sub-millisecond cost to zero
+        # every time, so the total came out as a fake 0 — a truncation artifact
+        # dressed up as a measurement.
+        matchSec = verifySec = 0.0
         for criterion in criteria:
             t0 = time.time()
             raw, calledVia = runMatcher(rung, note, criterion, config)
@@ -102,8 +106,8 @@ def runNote(note: str, config: dict, rung: str, k: int, onStage=None) -> dict:
             checked = verifyModule.verify(raw, note, criterion.text)
             # Timed separately. verify() runs inside this loop, so folding it into
             # matchMs would over-report the matcher and make the gate look free.
-            matchMs += int((t1 - t0) * 1000)
-            verifyMs += int((time.time() - t1) * 1000)
+            matchSec += t1 - t0
+            verifySec += time.time() - t1
             rows.append({
                 "criterion": asdict(criterion),
                 "raw": decisionToDict(raw),
@@ -119,12 +123,13 @@ def runNote(note: str, config: dict, rung: str, k: int, onStage=None) -> dict:
         # Decision objects so its `assert all(d.verified)` means something.
         tRank = time.time()
         scored = rank.aggregate(cand.nctId, checkedForTrial, cand.score, config)
-        rankMs += _ms(tRank)
+        rankSec += time.time() - tRank
         perTrial.append({
             "nctId": trial.nctId, "title": trial.title, "condition": trial.condition,
             "retrievalScore": cand.score, "retrieverBreakdown": cand.retrieverBreakdown,
             "rows": rows, "score": scored.score, "missingInfo": scored.missingInfo,
-            "matchMs": matchMs, "verifyMs": verifyMs, "calledVia": calledVia,
+            "matchMs": round(matchSec * 1000), "verifyMs": round(verifySec * 1000),
+            "calledVia": calledVia,
         })
 
     emit({
@@ -151,7 +156,7 @@ def runNote(note: str, config: dict, rung: str, k: int, onStage=None) -> dict:
 
     perTrial.sort(key=lambda p: p["score"], reverse=True)
     emit({
-        "id": "rank", "fn": "rank.aggregate", "ms": rankMs,
+        "id": "rank", "fn": "rank.aggregate", "ms": round(rankSec * 1000),
         "in": {"weights": config["rank"]},
         "out": {"ranked": [{"nctId": p["nctId"], "score": p["score"],
                             "missing": len(p["missingInfo"])} for p in perTrial]},
