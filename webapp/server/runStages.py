@@ -64,7 +64,9 @@ def runNote(note: str, config: dict, rung: str, k: int, onStage=None) -> dict:
             "rank": rank_,
             "title": tr.title if tr else None,
             "condition": tr.condition if tr else None,
-            "summary": (tr.summary or "")[:400] if tr else None,
+            # Full summary, not clipped: the trial-detail modal shows it, and a few KB
+            # x k trials is nothing next to a 350 KB run file.
+            "summary": (tr.summary or None) if tr else None,
             "fetched": tr is not None,
         })
     emit({

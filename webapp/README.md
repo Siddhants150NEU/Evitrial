@@ -32,12 +32,22 @@ python -m webapp.server.serveDemo --live
 | `P` | presenter mode |
 | `F` | fullscreen |
 
+**Presenter mode does two things.** It scales type up for a projector, and it strips the
+reading material: the "What this script does / Why it's there" pair disappears from every
+stage tab, because on stage *you* are the narration and that prose just competes with the
+data. What stays is the headline, the IN→OUT panels and the actual results.
+
+Anything you want gone in presenter mode only needs the `hideInPresent` class —
+`body.presenting .hideInPresent{display:none}` in `appStyles.css` does the rest.
+
 ---
 
 ## Two pages worth calling out
 
-**Start** is a single picker. Prebuilt runs and "write your own" are the same kind of
-thing — options — and exactly one is selected at a time, so exactly one can run.
+**Start** is a single picker and nothing else. Prebuilt runs and "write your own" are the
+same kind of thing — options — and exactly one is selected at a time, so exactly one can run.
+The `match() proposes / verify() checks / rank() refuses` summary that used to sit at the
+bottom is gone; the stage tabs make the same point with real data behind it.
 
 **Selecting anything reveals it, in the same slot.** Click a prebuilt note and you get
 that patient's note read-only, sentence-indexed exactly as the results will cite it, plus
@@ -67,6 +77,25 @@ your top hit scored zero.
 
 How long the list is depends entirely on `k`. The default is now **10**, which gives a
 list worth scrolling; `--k 3` if you want it short.
+
+**Click any trial for the full view.** A modal with everything known about it: the score
+bubble, the retrieval metrics broken out, the trial's summary unclipped, and *every*
+criterion split into inclusion and exclusion with its label, its cited span, its gold chip
+where an expert annotation exists, and an amber marker on anything the gate rewrote. It
+reuses the same `critRow()` renderer as the Results tab, so the two can't drift apart.
+
+Dismiss with the ✕, `Escape`, or a click on the backdrop; focus returns to the row you
+came from. Arrow keys stop switching tabs while it's open, so `→` doesn't slide the deck
+out from under an open trial.
+
+Rows are `role="button"` with `tabindex="0"` rather than real `<button>`s — they contain a
+heading and a paragraph, which aren't legal button content — so `Enter`/`Space` open them
+too.
+
+Two honest limits. The summary in the **existing** cached runs was stored clipped at 400
+characters, and the modal says so when it hits that ceiling; new runs store it whole.
+And there's no `detailedDescription` or raw eligibility text in a run file at all — a full
+trial lookup means rescanning the corpus (~64s), which is not something to do on a click.
 
 ## Read this before you demo live
 
@@ -165,6 +194,63 @@ matcher weights are built once and shared. Measured across one process — first
 silently clobbering the other.
 
 ---
+
+## The Matchers tab quotes a logged eval run
+
+Each rung card shows **macro-F1 with its 95% CI** as a bar on a fixed 0–1 scale, plus
+pills for coverage, selective accuracy, ECE and gate firings. All of it comes from one
+logged run, read server-side from `reports/runs/`:
+
+```
+runId  20260803T013354Z_286af69      git 286af69      seed 13
+frozen test split, n=128 expert-annotated criteria
+```
+
+| rung | macro-F1 | 95% CI | answers | right when it does | ECE |
+|---|---|---|---|---|---|
+| rules | 0.314 | [0.232, 0.401] | 43% | 27% | 0.047 |
+| zeroShot | 0.596 | [0.490, 0.702] | 45% | 70% | 0.260 |
+| **lora** | **0.688** | [0.603, 0.756] | 44% | 75% | 0.214 |
+| generative | 0.638 | [0.552, 0.713] | 41% | 68% | 0.251 |
+
+**Nothing on this tab is computed in the browser.** It used to aggregate the three demo
+notes from `cache/`, which was a number nobody could cite. Per invariant 7, if `eval.py`
+didn't write it to `reports/runs/`, it isn't on screen.
+
+The explanatory card that spelled all this out on the page is gone — it was a wall of prose
+above the thing people actually came to look at. What survives on screen is one compact
+provenance line: `runId`, `seed`, `frozen test split · n=128`, and the CI caveat. The runId
+stays because invariant 7 means a number without one isn't quotable; the paragraphs
+explaining what ECE is live here instead.
+
+### The whiskers are the point
+
+At n=128 **all three model rungs' intervals overlap each other**; only the gap to `rules`
+is clean. A bare bar chart would assert an ordering the data doesn't support, so the card
+states the verdict in words — and computes it from the CIs rather than hardcoding it, so it
+can't go stale against a different run:
+
+> lora leads at 0.688, but its interval overlaps generative and zeroShot — so that
+> ordering is suggestive, not established. It is cleanly ahead of rules.
+
+### Which run, and why pinned
+
+`EVAL_RUN_ID` in `webapp/server/paths.py`. Pinned rather than "newest", because newest
+silently changes what's on screen the moment anyone runs `eval.py` — and the numbers in a
+talk should be the ones you checked. Override per request with `/api/eval?runId=…`.
+
+Worth knowing: the newer run `20260803T050637Z_1034b7d` disagrees substantially
+(zeroShot 0.464, lora 0.533, generative 0.540). Two logged runs a few hours apart giving
+lora 0.688 vs 0.533 is a real question about run-to-run variance, not a display issue.
+
+### Other numbers on the card
+
+**ECE above 0.2 is flagged**, and three of the four are — only `rules` (0.047) is
+well-calibrated, which makes sense for a lexical baseline with hand-set confidences.
+
+**gate = 0× everywhere**, and the card explains why that isn't luck: on the val split the
+gate checked 38 spans and rejected 8 (21%), all multi-sentence, and all 8 recoverable by a
+per-sentence check. That is fixable strictness, not a hallucination catch.
 
 ## Adding the generative matcher
 

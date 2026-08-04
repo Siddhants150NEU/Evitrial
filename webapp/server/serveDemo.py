@@ -10,6 +10,7 @@ ROUTES
   GET  /                    the app
   GET  /api/matchers        which rungs exist right now (see matcherRegistry)
   GET  /api/cache           list of pre-computed runs
+  GET  /api/eval[?runId=]   per-rung numbers from a logged eval run
   GET  /api/cache/<id>      one pre-computed run
   POST /api/run             {note, rung, k} -> a real run. Only with --live.
 
@@ -22,10 +23,12 @@ from __future__ import annotations
 import argparse
 import json
 import threading
+from collections import Counter
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
-from .paths import CACHE, WEBAPP           # one definition, no heavy imports
+from .paths import CACHE, EVAL_RUN_ID, RUNS, WEBAPP   # one definition, no heavy imports
 
 _state = {"live": False, "config": None, "busy": threading.Lock()}
 _summaries: dict[str, tuple] = {}           # path -> (mtime, size, summary)
@@ -42,17 +45,73 @@ def _summarise(f: Path) -> dict:
         return hit[2]
 
     d = json.loads(f.read_text())
+    rows = [r for t in d.get("trials", []) for r in t.get("rows", [])]
+    labels = Counter(r["verified"]["label"] for r in rows)
+    # Contract failures are the generative rung's own abstention channel — llmContract
+    # rejecting a malformed or off-target verdict, upstream of verify(). Counted here so
+    # the Matchers tab can compare rungs without downloading every full run.
+    contractFailures = sum(len(r["verified"].get("extra", {}).get("failures") or [])
+                           for r in rows)
+
     # Sentences ride along so the picker can show the note without pulling the whole
     # run down first. Everything here is read by the front end — nothing speculative.
     summary = {"id": f.stem, "topicId": d.get("topicId"),
                "rung": d.get("rung"), "k": d.get("k"),
                "trials": len(d.get("trials", [])),
-               "criteria": sum(len(t.get("rows", [])) for t in d.get("trials", [])),
+               "criteria": len(rows),
+               "labels": dict(labels),
+               "contractFailures": contractFailures,
                "forcedAbstentions": d.get("forcedAbstentions"),
+               # matchMs, not totalMs, is the matcher's own cost. totalMs folds in
+               # retrieval — including the ~135s cold BM25 build the first run in a
+               # process pays — which would make whichever rung ran first look slowest.
+               "matchMs": sum(t.get("matchMs") or 0 for t in d.get("trials", [])),
                "totalMs": d.get("totalMs"), "builtAt": d.get("builtAt"),
                "sentences": d.get("sentences", [])}
     _summaries[f.name] = (*stamp, summary)
     return summary
+
+def _evalRun(runId: str) -> dict:
+    """IN: a runId. OUT: the per-rung eval numbers the Matchers tab quotes.
+
+    Reads reports/runs/<runId>/ — the only place a quotable number is allowed to come
+    from. Deliberately drops the bulky bits (128-point risk-coverage curves, 10-bin
+    calibration histograms): the tab shows headline figures, and shipping ~50 KB of
+    curve data nobody plots would be silly.
+    """
+    if not runId.replace("-", "").replace("_", "").isalnum():      # no path games
+        return {"error": "bad runId"}
+    folder = RUNS / runId
+    metricsFile, metaFile = folder / "metrics.json", folder / "meta.json"
+    if not metricsFile.is_file():
+        return {"error": f"no logged run {runId!r} under reports/runs/"}
+
+    m = json.loads(metricsFile.read_text())
+    meta = json.loads(metaFile.read_text()) if metaFile.is_file() else {}
+    rungs = {}
+    for rung, crit in (m.get("criterion") or {}).items():
+        if not isinstance(crit, dict) or "macroF1" not in crit:
+            rungs[rung] = {"status": crit.get("status") if isinstance(crit, dict) else "missing"}
+            continue
+        abst = (m.get("abstention") or {}).get(rung) or {}
+        cal = (m.get("calibration") or {}).get(rung) or {}
+        faith = (m.get("faithfulness") or {}).get(rung) or {}
+        rungs[rung] = {
+            "macroF1": crit["macroF1"], "macroF1CI": crit.get("macroF1CI"), "n": crit.get("n"),
+            "perClass": {k: {"f1": v.get("f1"), "support": v.get("support")}
+                         for k, v in (crit.get("perClass") or {}).items()},
+            "coverage": abst.get("coverage"),
+            "selectiveAccuracy": abst.get("selectiveAccuracy"),
+            "unknownRecall": abst.get("unknownRecall"),
+            "ece": cal.get("ece"), "brier": cal.get("brier"), "calN": cal.get("n"),
+            "faithfulness": faith.get("faithfulness"),
+            "forcedAbstentions": faith.get("forcedAbstentions"),
+            "overreach": faith.get("overreach"),
+            "failureCounts": faith.get("failureCounts") or {},
+        }
+    return {"runId": meta.get("runId", runId), "gitShortSha": meta.get("gitShortSha"),
+            "seed": meta.get("seed"), "utc": meta.get("utc"),
+            "rungs": rungs, "gateCalibration": m.get("gateCalibration")}
 
 def _config() -> dict:
     """Load configs/default.yaml once and hang onto it. IN: nothing. OUT: the config dict."""
@@ -103,6 +162,10 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/matchers":
             from .matcherRegistry import discoverRungs
             return self._json({"rungs": discoverRungs(), "live": _state["live"]})
+
+        if path == "/api/eval":
+            qs = parse_qs(urlparse(self.path).query)
+            return self._json(_evalRun(qs.get("runId", [EVAL_RUN_ID])[0]))
 
         if path == "/api/cache":
             return self._json({"runs": [_summarise(f) for f in sorted(CACHE.glob("*.json"))]})

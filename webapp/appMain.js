@@ -21,6 +21,7 @@ const state = {
   presenting: false,
   selected: null,     // {type:"cached", id} | {type:"custom"} — exactly one, ever
   customNote: "",
+  evalRun: null,      // the logged eval run the Matchers tab quotes
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -95,6 +96,14 @@ async function loadMatchers() {
   $("#livePill").textContent = state.live ? "live runs ON" : "cached only";
 }
 
+async function loadEvalRun() {
+  try {
+    const r = await fetch("/api/eval").then((x) => x.json());
+    state.evalRun = r.error ? null : r;
+    state.evalError = r.error || null;
+  } catch (e) { state.evalRun = null; state.evalError = e.message; }
+}
+
 async function loadCacheList() {
   try { state.cached = (await fetch("/api/cache").then((x) => x.json())).runs || []; }
   catch { state.cached = []; }
@@ -127,6 +136,12 @@ function show(id) {
   const stage = STAGES.find((s) => s.id === id);
   if (stage) renderStage(stage);
   if (id === "results") renderResults();
+  // Matchers reads the cached runs for its per-rung numbers. Fetched here rather than at
+  // boot so a deep link straight to #matchers still fills in, and #start doesn't fetch twice.
+  if (id === "matchers") {
+    state.evalRun || state.evalError ? renderMatchers()
+      : loadEvalRun().then(renderMatchers);
+  }
   // Re-render the picker on every visit: a cache file written while the page was open
   // should show up when you come back to Start, not only after a reload.
   if (id === "start") refreshStart();
@@ -136,7 +151,11 @@ function show(id) {
 
 function wireKeys() {
   addEventListener("keydown", (e) => {
-    if (e.target.matches("textarea, input")) return;
+    // instanceof guard: a keydown whose target isn't an Element (window/document) has
+    // no .matches, and the TypeError would kill this handler silently — arrow-key
+    // navigation would just stop working with nothing in the console to explain it.
+    if (e.target instanceof Element && e.target.matches("textarea, input")) return;
+    if (document.querySelector(".modalWrap")) return;   // modal owns the keyboard
     const i = TABS.findIndex((t) => t.id === state.active);
     if (e.key === "ArrowRight") { e.preventDefault(); show(TABS[Math.min(TABS.length - 1, i + 1)].id); }
     if (e.key === "ArrowLeft") { e.preventDefault(); show(TABS[Math.max(0, i - 1)].id); }
@@ -206,19 +225,7 @@ function renderStart() {
       <span class="grow" id="runSummary"></span>
       <button class="btn" id="runBtn" ${busy ? "disabled" : ""}>Run</button>
     </div>
-    <div id="runStatus" style="margin-top:14px"></div>
-
-    <div class="grid g3" style="margin-top:26px">
-      <div class="card tint-sky"><h3>match() proposes</h3>
-        <p style="font-size:14px;color:var(--ink-dim);margin-top:6px">A label and two spans. Returns
-          <code>verified=False</code>. It is allowed to be wrong.</p></div>
-      <div class="card tint-coral"><h3>verify() checks</h3>
-        <p style="font-size:14px;color:var(--ink-dim);margin-top:6px">Both spans real, or the label
-          becomes UNKNOWN. The only place <code>verified</code> flips to True.</p></div>
-      <div class="card"><h3>rank() refuses</h3>
-        <p style="font-size:14px;color:var(--ink-dim);margin-top:6px"><code>assert all(d.verified)</code>.
-          Break a link and the pipeline raises rather than scoring a guess.</p></div>
-    </div>`;
+    <div id="runStatus" style="margin-top:14px"></div>`;
 
   document.querySelectorAll("[data-pick]").forEach((b) => (b.onclick = () => {
     state.selected = b.dataset.pick === "custom"
@@ -408,7 +415,9 @@ function renderStage(stage) {
     <span class="eyebrow">Stage ${stage.n} · ${esc(stage.script)}</span>
     <h1>${esc(stage.headline)}</h1>
     <div class="squiggle"></div>
-    <div class="grid g2" style="margin-bottom:20px">
+    <!-- The what/why pair is for someone reading alone. In presenter mode YOU are the
+         narration, so it's just a wall of prose competing with the data. Hidden there. -->
+    <div class="grid g2 hideInPresent" style="margin-bottom:20px">
       <div class="card"><h3>What this script does</h3>
         <p style="font-size:15px;color:var(--ink-dim);margin-top:7px">${esc(stage.what)}</p></div>
       <div class="card tint-coral"><h3>Why it's there</h3>
@@ -499,7 +508,14 @@ function ioRetrieve(ev, id) {
       <div class="trialList scroll" id="retList"></div>
     </div>`));
 
-  $("#retList").innerHTML = cands.map((c) => retrievedRow(c)).join("");
+  const list = $("#retList");
+  list.innerHTML = cands.map((c) => retrievedRow(c)).join("");
+  list.querySelectorAll("[data-nct]").forEach((row) => {
+    row.onclick = () => openTrialModal(row.dataset.nct);
+    row.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openTrialModal(row.dataset.nct); }
+    };
+  });
 }
 
 /* One row per retrieved trial. Falls back to run.trials for the title when the run was
@@ -512,10 +528,16 @@ function retrievedRow(c) {
   const metrics = Object.entries(bd)
     .map(([k, v]) => metric(k, typeof v === "number" ? v.toFixed(3) : v)).join("");
 
-  return `<div class="retRow">
+  // role/tabindex rather than a <button>: the row contains a heading and a paragraph,
+  // which aren't legal button content. Keydown handling is wired in ioRetrieve.
+  return `<div class="retRow" role="button" tabindex="0" data-nct="${esc(c.nctId)}"
+       aria-label="Open full view of ${esc(title)}">
     <div class="retRank">${c.rank ?? "·"}</div>
     <div class="retBody">
-      <h3>${esc(title)}</h3>
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <h3 style="flex:1">${esc(title)}</h3>
+        <span class="openHint">full view →</span>
+      </div>
       <div class="retMeta">${esc(c.nctId)}${condition ? " · " + esc(condition) : ""}</div>
       ${c.summary ? `<p class="retSummary">${esc(c.summary)}</p>` : ""}
       <div class="metrics">
@@ -526,6 +548,93 @@ function retrievedRow(c) {
       </div>
     </div>
   </div>`;
+}
+
+/* ---------- trial detail modal --------------------------------------------
+   Everything known about one trial, assembled from the run already in memory: the
+   retrieval metrics from the candidate, and every criterion + decision from the
+   scored trial. No fetch — a full trial lookup means rescanning the corpus.       */
+function openTrialModal(nctId) {
+  // One at a time. There's no focus trap, so Tab can reach a row behind the backdrop
+  // and Enter would stack a second modal on top of the first.
+  document.querySelectorAll(".modalWrap").forEach((m) => m.remove());
+
+  const ev = state.run?.stages?.find((s) => s.id === "retrieve");
+  const cand = ev?.out.candidates.find((c) => c.nctId === nctId) || {};
+  const scored = (state.run?.trials || []).find((t) => t.nctId === nctId);
+  const gold = state.run?.gold?.[nctId];
+  const bd = cand.retrieverBreakdown || {};
+
+  const counts = (lab) => (scored?.rows || []).filter((r) => r.verified.label === lab).length;
+  const inc = (scored?.rows || []).filter((r) => r.criterion.criterionType === "inclusion");
+  const exc = (scored?.rows || []).filter((r) => r.criterion.criterionType === "exclusion");
+  const forced = (scored?.rows || []).filter((r) => r.forced).length;
+
+  const section = (label, rows) => rows.length ? `
+    <h3>${label} <span style="font-weight:400;color:var(--ink-soft);font-size:13px">
+      · ${rows.length}</span></h3>
+    ${rows.map((r) => critRow(r, gold)).join("")}` : "";
+
+  const wrap = el(`
+    <div class="modalWrap" role="dialog" aria-modal="true" aria-label="Trial detail">
+      <div class="modal">
+        <div class="modalHead">
+          <div class="scoreBub" title="ranking score">
+            <div><div class="n">${scored ? scored.score.toFixed(2) : "—"}</div>
+            <div class="l">SCORE</div></div>
+          </div>
+          <div class="meta">
+            <h2>${esc(cand.title || scored?.title || nctId)}</h2>
+            <div class="nct">${esc(nctId)}${cand.condition ? " · " + esc(cand.condition) : ""}
+              ${cand.rank ? ` · retrieved #${cand.rank}` : ""}</div>
+          </div>
+          <button class="modalClose" aria-label="Close">✕</button>
+        </div>
+        <div class="modalBody">
+          <div class="metrics" style="margin-bottom:4px">
+            ${metric("retrieval score", (cand.score ?? 0).toFixed(3), "primary")}
+            ${Object.entries(bd).map(([k, v]) =>
+              metric(k, typeof v === "number" ? v.toFixed(3) : v)).join("")}
+            ${scored ? metric("criteria", scored.rows.length) : ""}
+            ${metric("MET", counts("MET"))}
+            ${metric("NOT_MET", counts("NOT_MET"))}
+            ${metric("UNKNOWN", counts("UNKNOWN"))}
+            ${forced ? metric("gate rewrote", `${forced}×`, "warnMetric") : ""}
+            ${scored?.calledVia ? metric("matched via", scored.calledVia) : ""}
+          </div>
+
+          ${cand.summary ? `<h3>What the trial says</h3>
+            <p style="font-size:14px;color:var(--ink-dim);line-height:1.55">${esc(cand.summary)}</p>
+            ${cand.summary.length >= 400 ? `<p class="clipNote">Summary stored clipped at 400
+              characters when this run was built — the full text lives in the corpus, not here.</p>` : ""}`
+            : `<p style="font-size:14px;color:var(--ink-soft)">No summary captured for this trial.</p>`}
+
+          ${scored ? `${section("Inclusion criteria", inc)}${section("Exclusion criteria", exc)}
+            ${scored.missingInfo.length ? `<h3>Still unanswered</h3>
+              <p style="font-size:13.5px;color:var(--ink-dim)">${scored.missingInfo.length}
+              criteri${scored.missingInfo.length === 1 ? "on" : "a"} came back UNKNOWN, so they
+              moved nothing in the score and are waiting on a human.</p>` : ""}`
+            : `<p style="font-size:14px;color:var(--unknown);margin-top:14px">Retrieval returned
+               this trial but <b>fetchTrials couldn't resolve it</b>, so it was never parsed or
+               scored. Nothing to show below the metrics.</p>`}
+        </div>
+      </div>
+    </div>`);
+
+  const close = () => {
+    wrap.remove();
+    document.body.classList.remove("modalOpen");
+    removeEventListener("keydown", onKey);
+    document.querySelector(`.retRow[data-nct="${nctId}"]`)?.focus();  // hand focus back
+  };
+  const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } };
+
+  wrap.querySelector(".modalClose").onclick = close;
+  wrap.onclick = (e) => { if (e.target === wrap) close(); };     // backdrop only
+  addEventListener("keydown", onKey);
+  document.body.classList.add("modalOpen");
+  document.body.appendChild(wrap);
+  wrap.querySelector(".modalClose").focus();
 }
 
 function ioParse(ev, id) {
@@ -691,12 +800,70 @@ function renderExtra(extra) {
   }).join("");
 }
 
-/* ---------- matchers tab -------------------------------------------------- */
+/* ---------- matchers tab --------------------------------------------------
+   Each rung card carries its own numbers, aggregated from the cached runs.
+
+   Restricted to the patients EVERY rung has been run on. zeroShot has a fourth
+   (sigir-20144) that lora and generative don't, and quietly folding it in would make
+   the columns describe different populations while looking like a comparison.        */
+/* Bar of macro-F1 with its 95% CI, on a fixed 0-1 scale so cards compare directly.
+   Single measure, so one hue and no legend — the label names it. The whisker is not
+   decoration: at n=128 all three model rungs overlap each other, and a bare bar would
+   imply an ordering the data doesn't support. */
+function rungMetrics(s) {
+  if (!s) return `<div class="rungNoData">Not in this eval run.</div>`;
+  if (s.macroF1 == null) {
+    return `<div class="rungNoData">${esc(s.status || "no metrics")} in this run.</div>`;
+  }
+  const [lo, hi] = s.macroF1CI || [s.macroF1, s.macroF1];
+  const pc = (x) => (x == null ? "—" : `${Math.round(x * 100)}%`);
+
+  return `<div class="f1Line">
+      <span class="big">${s.macroF1.toFixed(3)}</span>
+      <span class="lbl">macro-F1</span>
+    </div>
+    <div class="f1Track" role="img"
+         aria-label="macro-F1 ${s.macroF1.toFixed(3)}, 95% confidence interval ${lo.toFixed(3)} to ${hi.toFixed(3)}, on a 0 to 1 scale">
+      <span class="f1Mid"></span>
+      <span class="f1Fill" style="width:${(s.macroF1 * 100).toFixed(1)}%"
+            title="macro-F1 ${s.macroF1.toFixed(3)}"></span>
+      <span class="f1Ci" style="left:${(lo * 100).toFixed(1)}%;width:${((hi - lo) * 100).toFixed(1)}%"
+            title="95% CI ${lo.toFixed(3)} – ${hi.toFixed(3)}"></span>
+    </div>
+    <div class="f1Axis"><span>0</span><span>0.5</span><span>1.0</span></div>
+    <div class="metrics" style="margin-top:9px">
+      ${metric("answers", pc(s.coverage))}
+      ${metric("right when it does", pc(s.selectiveAccuracy))}
+      ${metric("ECE", s.ece == null ? "—" : s.ece.toFixed(3), s.ece > 0.2 ? "warnMetric" : "")}
+      ${metric("gate", `${s.forcedAbstentions ?? 0}×`, s.forcedAbstentions ? "warnMetric" : "")}
+    </div>`;
+}
+
+/* Say out loud whether the ranking is real. Recomputed from the CIs rather than written
+   in, so it can't go stale against a different run. */
+function ciVerdict(ev) {
+  const rs = Object.entries(ev.rungs)
+    .filter(([, v]) => v.macroF1CI)
+    .sort((a, b) => b[1].macroF1 - a[1].macroF1);
+  if (rs.length < 2) return "Only one rung has an interval in this run.";
+  const overlap = (a, b) => !(a[1] < b[0] || b[1] < a[0]);
+  const [topName, top] = rs[0];
+  const tied = rs.slice(1).filter(([, v]) => overlap(top.macroF1CI, v.macroF1CI)).map(([n]) => n);
+  const beaten = rs.slice(1).filter(([, v]) => !overlap(top.macroF1CI, v.macroF1CI)).map(([n]) => n);
+  return `<b>${esc(topName)}</b> leads at ${top.macroF1.toFixed(3)}, but its interval overlaps
+    ${tied.length ? tied.map((n) => `<b>${esc(n)}</b>`).join(" and ") : "nothing"}
+    — so ${tied.length ? "that ordering is suggestive, not established" : "the ordering holds"}.
+    ${beaten.length ? `It is cleanly ahead of ${beaten.map((n) => `<b>${esc(n)}</b>`).join(" and ")}.`
+      : ""}`;
+}
+
 function renderMatchers() {
+  const ev = state.evalRun;
   const cards = state.rungs.map((r) => `
     <button class="rung" data-rung="${esc(r.rung)}" aria-pressed="${r.rung === state.rung}">
       <div class="top"><span class="name">${esc(r.label)}</span><span class="tag">${esc(r.tag)}</span></div>
       <p class="blurb">${esc(r.blurb)}</p>
+      ${rungMetrics(ev?.rungs?.[r.rung])}
       <div class="span" style="margin-top:9px;font-size:10.5px">${esc(r.fnName)}()</div>
       ${r.dispatched ? "" : `<div class="warn">match.match() doesn't name this rung.
         ${r.catchAll ? `Worse, it ends in a bare <code>else</code>, so asking it for
@@ -724,19 +891,16 @@ function renderMatchers() {
       — so they're interchangeable and directly comparable. Whichever one you pick,
       <b>verify() still stands between it and the score.</b> A better matcher earns a better number;
       it never earns the right to skip the check.</p>
-    <div class="rungGrid" style="margin-bottom:22px">${cards}${ghost}</div>
-    <div class="card tint-cream">
-      <h3>How this list is built</h3>
-      <p style="font-size:14px;color:var(--ink-dim);margin-top:7px">
-        The server parses <code>src/match.py</code> with <code>ast</code> — it doesn't import it —
-        looking for functions named <code>&lt;rung&gt;Match</code>. Nothing about the matchers is
-        hardcoded in the front end, so adding one is a Python change only. Give it a nicer label by
-        adding a row to <code>matcherRegistry.KNOWN</code>.</p>
-      <p style="font-size:13px;color:var(--ink-dim);margin-top:9px">
-        Reading rather than importing keeps <code>torch</code>, <code>transformers</code> and
-        <code>peft</code> out of the page load — about four seconds, on a screen where no model
-        is going to run.</p>
-    </div>`;
+    ${ev ? `<div class="provenance">
+      <span class="runStamp">runId ${esc(ev.runId)}</span>
+      <span class="runStamp">seed ${ev.seed}</span>
+      <span class="runStamp">frozen test split · n=${ev.rungs.lora?.n ?? "?"}</span>
+      <span class="ciCaveat">${ciVerdict(ev)}</span>
+    </div>` : `<div class="provenance"><span class="runStamp warn">${esc(state.evalError ||
+      "no eval run loaded")}</span></div>`}
+    <div class="rungGrid" style="margin-bottom:22px">${cards}${ghost}</div>`;
+
+
   v.querySelectorAll("[data-rung]").forEach((b) => (b.onclick = () => {
     state.rung = b.dataset.rung;
     renderMatchers();

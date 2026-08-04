@@ -11,3 +11,9 @@ from pathlib import Path
 
 WEBAPP = Path(__file__).resolve().parent.parent
 CACHE = WEBAPP / "cache"
+RUNS = WEBAPP.parent / "reports" / "runs"
+
+# Which logged eval run the Matchers tab quotes. Pinned rather than "newest", because
+# newest silently changes what's on screen the moment anyone runs eval.py — and the
+# numbers in a talk should be the ones you checked. Override per-request with ?runId=.
+EVAL_RUN_ID = "20260803T013354Z_286af69"

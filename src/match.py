@@ -32,8 +32,9 @@ def match(note: str, criterion: Criterion, config: dict) -> Decision:
         return zeroShotMatch(note, criterion, config)
     elif config["matcher"]["rung"] == "generative":
         return generativeMatch(note, criterion, config)
-    else:
+    elif config["matcher"]["rung"] == "lora":
         return loraMatch(note, criterion, config)
+    raise ValueError(f"unknown matcher rung {config['matcher']['rung']!r}")
 
 def ruleMatch(note: str, criterion: Criterion, config: dict) -> Decision:
     stop_words = set(stopwords.words('english'))
